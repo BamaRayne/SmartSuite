@@ -32,9 +32,9 @@ definition(
     author		: "Jason Headley",
     description	: "The smart way to make your home smarter.",
     category	: "My Apps",
-	iconUrl			: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC.png",
-	iconX2Url		: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC2x.png",
-	iconX3Url		: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMCx.png")
+	iconUrl			: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/SMC.png",
+	iconX2Url		: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/SMC2x.png",
+	iconX3Url		: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/SMCx.png")
 
 /**********************************************************************************************************************************************/
 private def version() { 
@@ -55,23 +55,23 @@ def main() {
     dynamicPage (name: "main", title: "", install: true, uninstall: uninstalled) {  
         section("Communications") {
             href "messages", title: "Send messages where they matter most", 
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Zones.png"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Zones.png"
             }
         section("Controls",  uninstall: false){
             href "controls", title: "Simple controls for your complex world", 
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Control.png"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Control.png"
             }
         section("Alerts and Reminders") {
         	href "reminders", title: "Know what's going on when it happens", 
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Pause.png"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Pause.png"
         	}
         section("Ventilation") {
         	href "ventilation", title: "Keep your home Healthy",
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Settings.jpg"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Settings.jpg"
             }
         section("Uninstall") {
         	href "uninstallPage", title: "Click here to remove $app.label",
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Warn.png"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Warn.png"
             }
     }
 }
@@ -82,7 +82,8 @@ def main() {
 def messages() {
     dynamicPage (name: "messages", title: "You have created (${childApps?.size()}) Communication Zones", install: false, uninstall: installed) {
         section(""){
-            app(name: "Smart Message Control", appName: "Smart Message Control", title: "Smart Message Control", namespace: "Echo", multiple: false,  uninstall: false)
+            app(name: "Smart Message Control", appName: "Smart Message Control", title: "Smart Message Control", namespace: "Echo", multiple: false,  uninstall: false,
+            , image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC.png")
         }
     }
 }
@@ -115,9 +116,9 @@ def reminders() {
 	Ventilation
 ******************************************************************************/
 def ventilation() {
-    dynamicPage (name: "ventilation", title: "Detailed control of your homes Whole House Fan", install: true, uninstall: installed) {
-        section(""){
-            app(name: "House Fan Controller", appName: "House Fan Controller", title: "House Fan Controller", namespace: "Echo", multiple: false,  uninstall: false)
+    dynamicPage (name: "ventilation", title: "Keep the air in your home moving", install: true, uninstall: installed) {
+    	section("House Fan Controller"){
+        	app(name: "House Fan Controller", appName: "House Fan Controller", title: "House Fan Controller", namespace: "Echo", multiple: false,  uninstall: false, image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Main.png")
         }
     }
 }
