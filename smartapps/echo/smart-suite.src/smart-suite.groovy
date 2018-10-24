@@ -83,7 +83,7 @@ def messages() {
     dynamicPage (name: "messages", title: "You have created (${childApps?.size()}) Communication Zones", install: false, uninstall: installed) {
         section(""){
             app(name: "Smart Message Control", appName: "Smart Message Control", title: "Smart Message Control", namespace: "Echo", multiple: false,  uninstall: false,
-            , image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC.png")
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC.png")
         }
     }
 }
@@ -93,8 +93,9 @@ def messages() {
 ******************************************************************************/
 def controls() {
     dynamicPage (name: "controls", title: "Simple control of your complicated world", install: true, uninstall: installed) {
-        section(""){
-            app(name: "LogicRulz", appName: "LogicRulz", title: "LogicRulz", namespace: "Assistant", multiple: false,  uninstall: false)
+        section("Logic Rulz"){
+            app(name: "LogicRulz", appName: "LogicRulz", title: "LogicRulz", namespace: "Echo", multiple: false,  uninstall: false, 
+            image : "https://raw.githubusercontent.com/jasonrwise77/My-SmartThings/master/LogicRulz%20Icons/LogicRulz.png")
         }
     }
 }
@@ -106,7 +107,8 @@ def controls() {
 def reminders() {
     dynamicPage (name: "reminders", title: "Know what's going on now", install: true, uninstall: installed) {
         section(""){
-            app(name: "RemindR2", appName: "RemindR2", title: "RemindR2", namespace: "Echo", multiple: false,  uninstall: false)
+            app(name: "RemindR2", appName: "RemindR2", title: "RemindR2", namespace: "Echo", multiple: false,  uninstall: false,
+            image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-RemindR.png")
         }
     }
 }
@@ -117,6 +119,9 @@ def reminders() {
 ******************************************************************************/
 def ventilation() {
     dynamicPage (name: "ventilation", title: "Keep the air in your home moving", install: true, uninstall: installed) {
+    	section("Room Air Circulation"){
+        	app(name: "Air Circulator", appName: "Air Circulator", title: "Air Circulator", namespace: "tonesto7", multiple: false,  uninstall: false, image: appImg())
+        }
     	section("House Fan Controller"){
         	app(name: "House Fan Controller", appName: "House Fan Controller", title: "House Fan Controller", namespace: "Echo", multiple: false,  uninstall: false, image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Main.png")
         }
@@ -158,54 +163,15 @@ def updated() {
 def initialize() {
 }
 
-
-/*
-// INTEGRATION WITH 3RD PARTY APPS
-
-// HOUSE FAN CONTROLLER
-def HouseFanController(evt) { 
-    log.info "event received from House Fan Controller ==> $evt.value"
-    def result
-    childApps.each {child ->
-        def ch = child.label.toLowerCase()
-        if (ch) { 
-            log.debug "Found a profile, $ch"
-            result = child.ttsActions(evt) 
-        }
-        else {
-            log.debug "Could not find a profile to run, $profile"
-        }
+// APP IMAGES FOR AIR CIRCULATOR APP
+def appImg() { return "https://d1nhio0ox7pgb.cloudfront.net/_img/g_collection_png/standard/256x256/fan.png" }
+def appInfoSect()	{
+    def str = ""
+    str += "${app?.name}"
+    str += "\n• Version: ${appVer()}"
+    str += "\n• Updated: ${appDate()}"
+    section() {
+        paragraph "${str}", image: appImg()	
     }
 }
 
-// REMINDR
-def RemindR(evt) {  
-    log.info "event received from RemindR ==> $evt.value"
-    def result
-    childApps.each {child ->
-        def ch = child.label.toLowerCase()
-        if (ch) { 
-            log.debug "Found a profile, $ch"
-            result = child.ttsActions(evt) 
-        }
-        else {
-            log.debug "Could not find a profile to run, $profile"
-        }
-    }
-}
-
-// LOGIC RULZ
-def LogicRulz(evt) { 
-    log.info "event received from Logic Rulz ==> $evt.descriptionText"
-    def result
-    childApps.each {child ->
-        def ch = child.label.toLowerCase()
-        if (ch) { 
-            log.debug "Found a profile, $ch"
-            result = child.ttsActions() 
-        }
-        else {
-            log.debug "Could not find a profile to run, $profile"
-        }
-    }
-}*/
