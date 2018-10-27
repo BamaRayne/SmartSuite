@@ -1145,8 +1145,8 @@ def restrictionsHandler(evt) {
         }
     }
 
-	if (rLocksOk==true || rGarageOk==true || rTempOk==true || rHumOk==true || rSHMOk==true || rDimOk==true || rSwitchOk==true || rModeOk==true || 
-    	rMotionOk==true || rPresenceOk==true || rDoorOk==true || rWindowOk==true || rContactOk==true || rDaysOk==true || getTimeROk(evt)==true) { 
+	if (rLocksOk==true || rGarageOk==true || rTempOk==true || rHumOk==true || rSHMOk==true || rDimOk==true || rSwitchOk==true || rModeOk==false || 
+    	rMotionOk==true || rPresenceOk==true || rDoorOk==true || rWindowOk==true || rContactOk==true || rDaysOk==true) { // || getTimeROk(evt)==true) { 
         state.restrictions = true
     	if (parent.debug) log.info "Restrictions Handler --> All Restrictions have been Verified: Process Complete"
         if (parent.trace) log.info "Restrictions Handler Verified -->  \n" +
@@ -1156,7 +1156,7 @@ def restrictionsHandler(evt) {
         "**** rHumOk=$rHumOk, rSHM=$rSHMOk, rDim=$rDimOk, rSwitchOk=$rSwitchOk 	 \n" + 
         "**** rModeOk=$rModeOk, rMotionOk=$rMotionOk, rPresenceOk=$rPresenceOk 	 \n" +
         "**** rDoorOk=$rDoorOk,	rWindowOk=$rWindowOk, rContactOk=$rContactOk 	 \n" +
-        "**** cDaysOk=$cDaysOk, getTimeROk=" + getTimeROk(evt) +					 "\n" +
+        "**** rDaysOk=$rDaysOk, getTimeROk= 					 \n" + //+ getTimeROk(evt) +
         "***************************************************************************"
 		}
         else if (rLocks==null && rGarage==null && rTemp==null && rHum==null && rSHM==null && rDim==null && rSwitch==null && rMode==null && 
@@ -1174,7 +1174,7 @@ def restrictionsHandler(evt) {
         "**** rHumOk=$rHumOk, rSHM=$rSHMOk, rDim=$rDimOk, rSwitchOk=$rSwitchOk 	 \n" + 
         "**** rModeOk=$rModeOk, rMotionOk=$rMotionOk, rPresenceOk=$rPresenceOk 	 \n" +
         "**** rDoorOk=$rDoorOk,	rWindowOk=$rWindowOk, rContactOk=$rContactOk 	 \n" +
-        "**** cDaysOk=$cDaysOk, getTimeROk=" + getTimeROk(evt) +					 "\n" +
+        "**** rDaysOk=$rDaysOk, getTimeROk= 					 \n" + //+ getTimeROk(evt) +
         "***************************************************************************"
     	return
 		}

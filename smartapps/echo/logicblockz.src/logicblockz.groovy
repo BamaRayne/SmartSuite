@@ -2595,12 +2595,14 @@ def ttsActions(Message) {
         def tts = Message
         if (speakDisable == true) {
             if (echoDevice) {
-				settings?.echoDevice?.each { spk->
-     					spk?.speak(tts)
+				settings.echoDevice.each { spk->
+                		spk.speak(tts, spk)
 				}
             }     
            	if (synthDevice) {
-            	synthDevice?.speak(message, name) 
+            	settings?.synthDevice?.each { spk->
+                	spk?.speak(message)
+                    }
             }
             if (tts) {
                 state.sound = textToSpeech(tts instanceof List ? tts[9] : tts)
