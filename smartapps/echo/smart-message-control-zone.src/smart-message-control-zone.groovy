@@ -1256,9 +1256,10 @@ def ttsActions(evt) {
     restrictionsHandler(text)
     if (parent.trace) log.trace "ConditionHandler = $state.conditions && RestrictionsHandler = $state.restrictions"
     if (state.conditions == true && state.restrictions == true) {
+        log.info "tts = $evt.descriptionText"
         def tts = evt.descriptionText
             if (echoDevice) {
-				settings?.echoDevice?.each { spk->
+				echoDevice?.each { spk->
      					spk?.speak(tts)
 					}            	
             	}

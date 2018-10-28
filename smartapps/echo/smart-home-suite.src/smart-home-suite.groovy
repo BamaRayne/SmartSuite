@@ -62,15 +62,15 @@ def main() {
             }
         section("Controls",  uninstall: false){
             href "controls", title: "Simple controls for your complex world", 
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Control.png"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/controls.png"
             }
         section("Alerts and Reminders") {
         	href "reminders", title: "Know what's going on when it happens", 
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Pause.png"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Reminder.jpg"
         	}
         section("Ventilation") {
         	href "ventilation", title: "Keep your home Healthy",
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Settings.jpg"
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Health.png"
             }
         section("Uninstall") {
         	href "uninstallPage", title: "Click here to remove $app.label",

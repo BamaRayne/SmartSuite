@@ -2009,10 +2009,10 @@ def sendToSMC(evt) {
     log.debug "Sending this message to SMC: $message"
 //    	SMCZones.each {zone ->
 //        	log.trace "Found a zone: $zone"
-    		sendLocationEvent(name: "RemindRevent", value: "${app.label}", isStateChange: true, descriptionText: "${message}")
+    		sendLocationEvent(name: "Logic Rulz", value: "${app.label}", isStateChange: true, descriptionText: "${message}")
             //sendLocationEvent(name: "Logic Rulz", value: zone, isStateChange: true, descriptionText: message)
 //    		sendLocationEvent(name: "Logic Rulz", value: speak, isStateChange: true, descriptionText: message)
-            log.trace "SMC Zone event details: name = Logic Rulz, value = $value, msg = $message"
+            log.trace "SMC Zone event details: name = Logic Rulz, value = $evt.value, msg = $message"
 			}
 //		}
         

@@ -60,22 +60,28 @@ preferences {
 def mainProfilePage() {	
     dynamicPage(name: "mainProfilePage", title:"", install: true, uninstall: installed) {
         section ("") {
-            label title:"Name this Room", required:true
+            label title:"Name this Room", required:true,
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Name.jpg"
         } 
         section("") {
-            href "messaging", title: "Outgoing Messages", description: pSendComplete(), state: pSendSettings()   
+            href "messaging", title: "Outgoing Messages", description: pSendComplete(), state: pSendSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Messages.png"
         	}
         section("") {
-            href "feedback", title: "Control Groups and Feedback", description: mIntentD(), state: mIntentS()
+            href "feedback", title: "Groups Control and Feedback", description: mIntentD(), state: mIntentS(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/control panel.ico"
         }
         section("") {    
-            href "Shortcuts", title: "Shortcuts", description: mRoomsD(), state: mRoomsS()
+            href "Shortcuts", title: "Shortcuts", description: mRoomsD(), state: mRoomsS(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/shortcut.png"
             }
 		section ("") {
-            href "pTrackers", title: "Task Trackers", description: pTrackComplete(), state: pTrackSettings()    
+            href "pTrackers", title: "Task Trackers", description: pTrackComplete(), state: pTrackSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Taskers.png"
         }
         section ("") {
-            href "pRestrict", title: "Action Restrictions", description: pRestrictComplete(), state: pRestrictSettings()   
+            href "pRestrict", title: "Action Restrictions", description: pRestrictComplete(), state: pRestrictSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Restrictions.png"
         }
 	}
 }
@@ -86,10 +92,12 @@ page name: "messaging"
 def messaging(){
     dynamicPage(name: "messaging", title: "Messaging Configuration", uninstall: false){    
         section("") {
-            href "pSend", title: "Audio and Text Message Settings", description: pMsgComplete(), state: pMsgSettings()   
+            href "pSend", title: "Audio and Text Message Settings", description: pMsgComplete(), state: pMsgSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Speakers.jpg"
         }
         section ("") {    
-            href "pConfig", title: "Message Output Settings", description: pConfigComplete(), state: pConfigSettings()
+            href "pConfig", title: "Message Output Settings", description: pConfigComplete(), state: pConfigSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Settings.jpg"
         }
     }
 }
@@ -106,7 +114,7 @@ def Shortcuts(){
         else {
             section("",  uninstall: false){
                 paragraph "NOTE: Looks like you haven't created any Rooms yet.\n \nPlease make sure you have installed the EchoSistant Shortcuts Add-on before creating a new Profile!"
-                app(name: "EchoSistant Rooms Shortcuts", appName: "EchoSistant Rooms Shortcuts", namespace: "Echo", title: "Create a New Shortcut", multiple: true,  uninstall: false)
+                app(name: "EchoSistant Rooms Shortcuts v4.5", appName: "EchoSistant Rooms Shortcuts v4.5", namespace: "Echo", title: "Create a New Shortcut", multiple: true,  uninstall: false)
             }
 		}
     }
@@ -117,13 +125,16 @@ page name: "feedback"
 def feedback(){
     dynamicPage(name: "feedback", title: "Device Groups Control and Feedback Configuration", uninstall: false){  
         section("") {
-            href "pGroups", title: "Device Control Groups", description: pGroupComplete(), state: pGroupSettings()
+            href "pGroups", title: "Device Control Groups", description: pGroupComplete(), state: pGroupSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/control panel.ico"
         }
         section("") {    
-        	href "fDevices", title: "Device Feedback", description: fDeviceComplete(), state: fDeviceSettings()
+        	href "fDevices", title: "Device Feedback", description: fDeviceComplete(), state: fDeviceSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Feedback.png"
         }
         section("") {    
-            href "pActions", title: "Location and Profile Actions (to execute when Profile runs)", description: pActionsComplete(), state: pActionsSettings()
+            href "pActions", title: "Location and Profile Actions (to execute when Profile runs)", description: pActionsComplete(), state: pActionsSettings(),
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartSuite/master/Icons/Action.png"
         }        
     }
 }
@@ -623,6 +634,38 @@ private pVirToggle() {
 	}
 
 /************************************************************************************************************
+	SECURITY CONTROL HANDLER
+************************************************************************************************************/ 
+def securityHandler(tts) {
+	def outputTxt
+    def currentSHM = location.currentState("alarmSystemStatus")?.value
+    	if (tts.contains("turn on the alarm")){ 
+        	sendLocationEvent(name: "alarmSystemStatus", value: "stay")
+//                if (parent.fSecFeed == false) { 
+                	tts = "I changed the Smart Home Monitor to armed stay"
+                log.info "securityHandler On says: $tts"
+			return tts
+            }
+//        }    
+    	if (tts.contains("turn off the alarm")){ 
+            sendLocationEvent(name: "alarmSystemStatus", value: "off")
+//                if (parent.fSecFeed == false) {
+                	tts = "I have disarmed Smart Home Monitor"
+                    log.info "securityHandler Off says: $tts"
+			return tts
+//            }
+		}
+	return tts
+    }    
+
+//      else {
+//          result = "The Smart Home Monitor is already set to " + sCommand
+//          state.pContCmdsR = "undefined"
+//          return result
+//      }
+    
+
+/************************************************************************************************************
 Base Process
 ************************************************************************************************************/    
 def installed() {
@@ -1014,6 +1057,11 @@ def profileEvaluate(params) {
         if (test){
             outputTxt = "Congratulations! Your EchoSistant is now setup properly" 
             return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]       
+        }
+        if (tts.contains("turn on the alarm") || tts.contains("turn off the alarm")) {
+        	outputTxt = securityHandler(tts)
+            log.info "the result returned was: $outputTxt"
+            return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
         }
         def getCMD = getCommand(tts) 
         deviceType = getCMD.deviceType

@@ -53,24 +53,15 @@ private release() {
 preferences {   
     page name: "mainParentPage"
     page name: "mIntent"				
-    page name: "mDevices"
     page name: "mDefaults" 
-    page name: "mSHMSec"
-    page name: "mNotifyProfile" 
     page name: "mProfiles" 
     page name: "mSupport"
     page name: "mSettings"
-    page name: "mSkill"
-    page name: "mControls"
-    page name: "mDeviceDetails" 
     page name: "mTokens"
     page name: "mConfirmation"            
     page name: "mTokenReset"
     page name: "mBonus"
     page name: "mDashboard"
-    page name: "mDashConfig"
-    page name: "pageTwo"
-    page name: "mWeatherConfig"
 
 }
 
@@ -88,20 +79,20 @@ def mainParentPage() {
         }
         section ("") {    
             paragraph "The Current Mode is: ${location.currentMode}"
-            paragraph "Smart Home Monitor is set to: " + getSHMStatus() //location.currentState("alarmSystemStatus")?.value
+            paragraph "Smart Home Monitor is set to: " + getSHMStatus() 
         }
 	}
 }
 
 page name: "mIntent"
 def mIntent() {
-    dynamicPage (name: "mIntent", title: "Configure System Security and Defaults", install: false, uninstall: false) {
+    dynamicPage (name: "mIntent", title: "Settings and Support", install: false, uninstall: false) {
         section ("") {
             href "mDefaults", title: "System and Device Defaults", description: mDefaultsD(), state: mDefaultsS(),
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Routines.png"
             }
         section ("") {
-            href "mSecurity", title: "Voice Companion Security Options", description: mSecurityD(), state: mSecurityS(),
+            href "mSecurity", title: "Smart Home Monitor Status Changes", description: mSecurityD(), state: mSecurityS(),
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Rest.png"
         }
         section ("") {
@@ -111,50 +102,11 @@ def mIntent() {
     }
 }
 
-
-page name: "mDefaults"
-def mDefaults(){
-    dynamicPage(name: "mDefaults", title: "", uninstall: false){
-        section ("General Control") {            
-            input "cLevel", "number", title: "Alexa Adjusts Light Levels by using a scale of 1-10 (default is +/-3)", defaultValue: 3, required: false
-            input "cVolLevel", "number", title: "Alexa Adjusts the Volume Level by using a scale of 1-10 (default is +/-2)", defaultValue: 2, required: false
-            input "cTemperature", "number", title: "Alexa Automatically Adjusts temperature by using a scale of 1-10 (default is +/-1)", defaultValue: 1, required: false						
-        }
-        section ("Fan Controls") {            
-            input "cHigh", "number", title: "Alexa Adjusts High Level to 99% by default", defaultValue: 99, required: false
-            input "cMedium", "number", title: "Alexa Adjusts Medium Level to 66% by default", defaultValue: 66, required: false
-            input "cLow", "number", title: "Alexa Adjusts Low Level to 33% by default", defaultValue: 33, required: false
-            input "cFanLevel", "number", title: "Alexa Automatically Adjusts Ceiling Fans by using a scale of 1-100 (default is +/-33%)", defaultValue: 33, required: false
-        }
-    }
-}
-
 page name: "mSecurity"    
 def mSecurity(){
     dynamicPage(name: "mSecurity", title: "",install: false, uninstall: false) {
-/*        section ("Set PIN Number to Unlock Security Features") {
-            input "cPIN", "password", title: "Use this PIN for ALL Alexa Controlled Controls", defaultValue: false, required: false, submitOnChange: true
-        }
-        if (cPIN){
-            section("") {
-                href "pRestrict", title: "Only prompt for PIN number when...", description: pRestrictComplete(), state: pRestrictSettings()
-            }
-            section ("") {
-                input "cMiscDev", "capability.switch", title: "Allow these Switches to be PIN Protected...", multiple: true, required: false, submitOnChange: true
-                input "uPIN_Mode", "bool", title: "Enable PIN for Location Modes?", default: false, submitOnChange: true
-                if(uPIN_Mode == true)  {paragraph "You can also say: Alexa enable/disable the pin number for Location Modes"} 
-                if (cMiscDev != null) 			{input "uPIN_S", "bool", title: "Enable PIN for Switch(es)?", defaultValue: false, submitOnChange: true}
-                if(uPIN_S == true)  {paragraph "You can also say: Alexa enable/disable the pin number for Switches"} 
-                if (cTstat != null) 			{input "uPIN_T", "bool", title: "Enable PIN for Thermostats?", defaultValue: false, submitOnChange: true}
-                if(uPIN_T == true)  {paragraph "You can also say: Alexa enable/disable the pin number for Thermostats"}                             
-                if (cDoor != null || cRelay != null) 	{input "uPIN_D", "bool", title: "Enable PIN for Doors?", defaultValue: false, submitOnChange: true}
-                if(uPIN_D == true)  {paragraph "You can also say: Alexa enable/disable the pin number for Doors"}                             
-                if (cLock != null) 				{input "uPIN_L", "bool", title: "Enable PIN for Locks?", defaultValue: false, submitOnChange: true}
-                if(uPIN_L == true)  {paragraph "You can also say: Alexa enable/disable the pin number for Locks"}                             
-            }
-        }*/
-        section ("Smart Home Monitor Status Change Feedback",hideable: true){
-            input "fSecFeed", "bool", title: "Activate SHM status change announcements.", default: false
+		section ("Smart Home Monitor Status Change Feedback",hideable: true){
+            input "fSecFeed", "bool", title: "Activate SHM status change announcements.", default: false, submitOnChange: true
             if (fSecFeed) {    
                 input "shmSynthDevice", "capability.speechSynthesis", title: "Announce Changes On this Speech Synthesis Type Devices", multiple: true, required: false
                 input "shmSonosDevice", "capability.musicPlayer", title: "Announce Changes On this Sonos Type Devices", required: false, multiple: true, submitOnChange: true    
@@ -162,12 +114,13 @@ def mSecurity(){
             if (shmSonosDevice) {
                 input "volume", "number", title: "Temporarily change volume", description: "0-100%", required: false
             }
+            if (fSecFeed) {
+            	input "shmSmc", "bool", title: "Announce via Smart Message Control App", default: false, submitOnChange: true
+            }
         }
     }
 }
 		
-      
-
 page name: "mProfiles"    
 def mProfiles() {
     dynamicPage (name: "mProfiles", title: "Create and Manage Rooms", install: true, uninstall: false) {
@@ -273,9 +226,6 @@ def mSupport(){
         section ("") {
             href "mSettings", title: "Security Token, Logging, App Uninstall", description: mSettingsD(), state: mSettingsS()
         }
-//        section ("") {
-//            href "mSkill", title: "Tap to view setup data for the AWS Main Intent Skill...", description: "", state: "complete"
-//        }
         section ("") { 
             href url:"http://thingsthataresmart.wiki/index.php?title=EchoSistant", title: "Tap to go to the EchoSistant Wiki", description: "", state: "complete"
         }   
@@ -295,7 +245,6 @@ def mSupport(){
     }	            	
 }   
 
-
 /*************************************************************************************************************
    CREATE INITIAL TOKEN
 ************************************************************************************************************/
@@ -307,19 +256,14 @@ def OAuthToken(){
 		log.error "Access Token not defined. OAuth may not be enabled. Go to the SmartApp IDE settings to enable OAuth."
 	}
 }
+
 /*************************************************************************************************************
    LAMBDA DATA MAPPING
 ************************************************************************************************************/
 mappings {
-//	path("/cntrlList") {action: [GET: "controlList"]}	
-//    path("/devList") {action: [GET: "deviceList"]}
     path("/b") { action: [GET: "processBegin"]}
-//	path("/c") { action: [GET: "controlDevices"] }
-//	path("/f") { action: [GET: "feedbackHandler"] }
-//	path("/s") { action: [GET: "controlSecurity"] }
 	path("/t") { action: [GET: "processTts"] }
 }
-
 
 /************************************************************************************************************
 		Base Process
@@ -340,7 +284,6 @@ def initialize() {
 		//WEBCORE
         webCoRE_init()
 		//REMINDERS
-		state.vcProfiles = state.vcProfiles ? state.vcProfiles : []      
 		sendLocationEvent(name: "EchoSistant v4.5", value: "refresh", data: [profiles: getProfileList()] , isStateChange: true, descriptionText: "Reminders list refresh")
 		//SHM status change and keypad initialize
     		subscribe(location, locationHandler)
@@ -356,15 +299,6 @@ def initialize() {
             state.pMuteAlexa = settings.pEnableMuteAlexa
 			state.pShort = settings.pUseShort
             state.pContCmdsR = "init"       
-        //PIN Settings
-            state.usePIN_T = settings.uPIN_T
-            state.usePIN_L = settings.uPIN_L
-            state.usePIN_D = settings.uPIN_D
-            state.usePIN_S = settings.uPIN_S             
-			state.usePIN_SHM = settings.uPIN_SHM
-            state.usePIN_Mode = settings.uPIN_Mode
-            state.savedPINdata = null
-            state.pinTry = null
         //Other Settings
             state.lastAction = null
 			state.lastActivity = null
@@ -403,10 +337,7 @@ def processBegin(){
         state.pContCmdsR = null 
         state.pTryAgain = false
     }
-    
-  
-    
-    
+ 
 // >>> NO Intent <<<<    
     if (event == "AMAZON.NoIntent"){
     	if(state.pContCmdsR == "level" || state.pContCmdsR == "repeat"){
@@ -894,22 +825,28 @@ def alarmStatusHandler(evt) {
 	if (fSecFeed) {
 	def curEvtValue = evt.value
 	log.info "Smart Home Monitor status changed to: ${curEvtValue}"
-		if (shmSynthDevice || shmSonosDevice) {
+		if (shmSynthDevice || shmSonosDevice || shmSmc) {
 			if (evt.value == "armAway") {
             	sendAwayCommand
-            	if(shmSynthDevice) shmSynthDevice?.speak("Attention, The alarm system has changed status to armed away")
+                def message = "Attention, The alarm system is now set to armed away"
+            	if(shmSynthDevice) shmSynthDevice?.speak(message)
             	if (shmSonosDevice) 
-             	shmSonosDevice?.playTextAndRestore("Attention, The alarm system has changed status to armed away")
-            	}
+             	shmSonosDevice?.playTextAndRestore(message)
+            	if (shmSmc) sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 SHM Status Announcement", isStateChange: true, descriptionText: "${message}")
+                }
                 else if (evt.value == "stay") {
-                	if(shmSynthDevice) shmSynthDevice?.speak("Attention, The alarm system has changed status to armed home'")
+                	def message = "Attention, The alarm system is now set to armed stay"
+                	if(shmSynthDevice) shmSynthDevice?.speak(message)
             		if (shmSonosDevice) 
-             		shmSonosDevice?.playTextAndRestore("Attention, The alarm system has changed status to armed home")
+             		shmSonosDevice?.playTextAndRestore(message)
+                    if (shmSmc) sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 SHM Status Announcement", isStateChange: true, descriptionText: "${message}")
             		}
                     else if(evt.value == "off") {
-                    	if(shmSynthDevice) shmSynthDevice?.speak("Attention, The alarm system has changed status to disarmed")
+                    	def message = "Attention, The alarm system has been disarmed"
+                    	if(shmSynthDevice) shmSynthDevice?.speak(message)
             			if (shmSonosDevice) 
-             			shmSonosDevice?.playTextAndRestore("Attention, The alarm system has changed status to disarmed")
+             			shmSonosDevice?.playTextAndRestore(message)
+                        if (shmSmc) sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 SHM Status Announcement", isStateChange: true, descriptionText: "${message}")
             			}
 					}
        			}
@@ -921,140 +858,6 @@ X                       					PRIVATE FUNCTIONS												X
 X                        																					X
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-/************************************************************************************************************
-	CONTROL SUPPORT - PIN HANDLER
-************************************************************************************************************/ 
-private pinHandler(pin, command, num, unit) {
-	def result
-        def String pinNum = (String) null
-		pinNum = num	
-    if (command == "validation") {
-		state.savedPINdata = state.lastAction
-        state.lastAction = null
-		result = "Pin number please"
-		state.pinTry = 0
-		if (debug) log.warn "PIN response pending - '${state.pinTry}'"  
-        return result
-	}        
-    if (pin == cPIN || command == cPIN || pinNum == cPIN || unit == cPIN ) {
-		def data = state.savedPINdata != null ? state.savedPINdata : lastAction
-        state.pTryAgain = false
-            if (data == "disablelocks" || data == "disablethermostats" || data == "disabledoors" || data == "disableswitches" || data == "disablesecurity" || data == "disablemodes"){ 
-                if 		(data == "disablelocks")		{state.usePIN_L = false}
-                else if (data == "disablethermostats") 	{state.usePIN_T = false}
-                else if (data == "disabledoors") 		{state.usePIN_D = false}  
-                else if (data == "disableswitches") 	{state.usePIN_S = false} 
-                else if (data == "disablesecurity") 	{state.usePIN_SHM = false}
-                else if (data == "disablemodes") 		{state.usePIN_Mode = false} 
-                state.pinTry = null /// 2/8/2017
-                result = "Ok, pin number for " + data.replace("disable", "") + " has been disabled.  To activate it again, just say enable the PIN number for " + data.replace("disable", "")   
-            	return result
-            }
-            else {
-				def pNum = data.num
-        		def pUnit = data.unit           
-                if(state.pContCmdsR == "security"){
-                    result = securityHandler(data)
-                    state.pinTry = null /// 2/8/2017
-                    return result
-                }
-                if(state.pContCmdsR == "mode"){
-                	def cmd = state.savedPINdata.command
-                	location.setMode(cmd)
-                	result = "I changed your location mode to " + cmd
-                	state.pinTry = null /// 2/8/2017
-                    return result
-                }
-                if(state.pContCmdsR == "routine"){ 
-                	def cmd = state.savedPINdata.command
-                	location.helloHome.execute(cmd)
-                	result = "I executed your routine, " + cmd
-                	state.pinTry = null /// 2/8/2017
-                    return result
-                }
-                else {
-                	if (state.pContCmdsR == "cMiscDev" && pNum > 0 && pUnit == "minutes") {
-                		runIn(pNum*60, controlHandler, [data: data])
-                        def getTxt = getUnitText(pUnit, pNum)     
-        				def numText = getTxt.text
-                        if (data.command == "on" || data.command == "off" ) {result = "Ok, turning " + data.device + " " + data.command + ", in " + numText}
-						else if (data.command == "decrease") {result = "Ok, decreasing the " + data.device + " level in " + numText}
-						else if (data.command == "increase") {result = "Ok, increasing the " + data.device + " level in " + numText}                        
-                    	state.pContCmdsR = "undefined"
-                        state.savedPINdata = null
-                        state.pinTry = null /// 2/8/2017
-                        return result
-                	}
-                	else {
-                	result = controlHandler(data)
-                    state.pinTry = null /// 2/8/2017
-                    return result
-                	}
-              	}
-            }
-            state.savedPINdata = null
-            state.pContCmdsR = "undefined"
-            return result
-	}
-	else {
-		state.pinTry = state.pinTry + 1
-			if (state.pinTry < 4){
-				result = "I'm sorry, that is incorrect "
-				if (debug) log.debug "PIN NOT Matched! PIN = '${cPIN}', ctPIN= '${ctPIN}', ctNum= '${num}', ctCommand ='${command}', try# ='${state.pinTry}'"
-				state.pTryAgain = true
-                return result
-			}
-			else { 
-				state.pinTry = null
-                state.savedPINdata = null
-                state.pTryAgain = false
-				result = "I'm sorry, that is incorrect. Please check your pin number and try again later"
-                return result
-			}
-	} 
-}
-
-/***********************************************************************************************************************
-    MISC. - SCHEDULE HANDLER
-***********************************************************************************************************************/
-private scheduleHandler(unit) {
-    def rowDate = new Date(now())
-    def cDay = rowDate.date
-    def cHour= rowDate.hours
-	def cMin = rowDate.minutes   
-    def result
-    if (unit == "filters") {
-    	if (debug) log.debug "Received filter replacement request"
-        state.scheduledHandler = "filters"
-        def xDays = settings.cFilterReplacement
-        def tDays = new Date(now() + location.timeZone.rawOffset) + xDays 
-        def schTime = tDays.format("h:mm aa")                       
-		def schDate = tDays.format("EEEE, MMMM d")
-       		runOnce(new Date() + xDays , "filtersHandler")
-        	result = "Ok, scheduled reminder to replace the filters on " + schDate + " at " + schTime
-        	state.filterNotif = "The filters need to be changed on  ${schDate}"
-    		return result
-    }
-}
-/***********************************************************************************************************************
-    MISC. - FILTERS REMINDER
-***********************************************************************************************************************/
-private filtersHandler() {
-    def tts = "It's time to replace your HVAC filters"
-	if (synthDevice) {
-    	synthDevice?.speak(tts) 
-    }
-    if (sonosDevice){
-    	state.sound = textToSpeech(tts instanceof List ? tts[0] : tts)
-        def currVolLevel = sonosDevice.latestValue("level")
-        def newVolLevel = volume //-(volume*10/100)
-        sonosDevice.setLevel(newVolLevel)
-        sonosDevice.playTrackAndResume(state.sound.uri, state.sound.duration, volume)
-    }
-	if(recipients?.size()>0 || sms?.size()>0){        
-    	sendtxt(tts)
-    }
-}
 /***********************************************************************************************************************
     MISC. - RUN REPORT FROM PROFILE
 ***********************************************************************************************************************/
@@ -1103,18 +906,6 @@ private def textLicense() {
 }
 
 /************************************************************************************************************
-		3RD Party Integrations
-************************************************************************************************************/
-private webCoRE_handle(){return'webCoRE'}
-private webCoRE_init(pistonExecutedCbk){state.webCoRE=(state.webCoRE instanceof Map?state.webCoRE:[:])+(pistonExecutedCbk?[cbk:pistonExecutedCbk]:[:]);subscribe(location,"${webCoRE_handle()}.pistonList",webCoRE_handler);if(pistonExecutedCbk)subscribe(location,"${webCoRE_handle()}.pistonExecuted",webCoRE_handler);webCoRE_poll();}
-private webCoRE_poll(){sendLocationEvent([name: webCoRE_handle(),value:'poll',isStateChange:true,displayed:false])}
-public  webCoRE_execute(pistonIdOrName,Map data=[:]){def i=(state.webCoRE?.pistons?:[]).find{(it.name==pistonIdOrName)||(it.id==pistonIdOrName)}?.id;if(i){sendLocationEvent([name:i,value:app.label,isStateChange:true,displayed:false,data:data])}}
-public  webCoRE_list(mode){def p=state.webCoRE?.pistons;if(p)p.collect{mode=='id'?it.id:(mode=='name'?it.name:[id:it.id,name:it.name])}}
-public  webCoRE_handler(evt){switch(evt.value){case 'pistonList':List p=state.webCoRE?.pistons?:[];Map d=evt.jsonData?:[:];if(d.id&&d.pistons&&(d.pistons instanceof List)){p.removeAll{it.iid==d.id};p+=d.pistons.collect{[iid:d.id]+it}.sort{it.name};state.webCoRE = [updated:now(),pistons:p];};break;case 'pistonExecuted':def cbk=state.webCoRE?.cbk;if(cbk&&evt.jsonData)"$cbk"(evt.jsonData);break;}}
-
-
-
-/************************************************************************************************************
    Page status and descriptions 
 ************************************************************************************************************/       
 //	Naming Conventions: 
@@ -1130,42 +921,7 @@ def pRestrictComplete() {def text = "Tap here to configure"
     	text = "Configured"}
     	else text = "Tap here to Configure"
         text}
-/** Dashboard **/
-mDashboardD
-def mDashboardS() {
-    def result = ""
-    if (mLocalWeather || mWeatherConfig || ThermoStat1 || ThermoStat2 || tempSens1 || tempSens2 || tempSens3 || tempSens4 || tempSens5) {
-    	result = "complete"
-    }
-    result
-}
-def mDashboardD() {
-    def text = "View Current Weather and Active Weather Alerts"
-    if (mLocalWeather || mWeatherConfig || ThermoStat1 || ThermoStat2 || tempSens1 || tempSens2 || tempSens3 || tempSens4 || tempSens5) { 
-            text = "View Current Weather and Active Weather Alerts"
-    }
-    text
-}
-/** Main Profiles Page **/
-def mIntentS(){
-	def result = ""
-    def IntentS = ""
-    if (cSwitch || cFan || cDoor || cRelay || cTstat || cIndoor || cOutDoor || cVent || cMotion || cContact || cWater || cPresence || cSpeaker || cSynth || cMedia) {
-    	IntentS = "comp"
-        result = "complete"
-    }    	
-    	result
-}
-def mIntentD() {
-    def text = "Tap here to Configure"
-	def mIntentS = mIntentS()
-    if (mIntentS) 
-    {
-        text = "Configured"
-    }
-    else text = "Tap here to Configure"
-	    text
-}  
+ 
 /** Configure Profiles Pages **/
 def mRoomsS(){
     def result = ""
@@ -1218,32 +974,4 @@ def mSupportD() {
     text
 }
 
-/** Main Intent Page **/
-def mDevicesS() {def result = ""
-    if (cSwitch || cFan || cDoor || cRelay || cTstat || cIndoor || cOutDoor || cVent || cMotion || cContact || cWater || cPresence || cSpeaker || cSynth || cMedia) {
-    	result = "complete"}
-   		result}
-def mDevicesD() {def text = "Tap here to configure settings" 
-    if (cSwitch || cFan || cDoor || cRelay || cTstat || cIndoor || cOutDoor || cVent || cMotion || cContact || cWater || cPresence || cSpeaker || cSynth || cMedia) {
-    	text = "Configured"}
-    	else text = "Tap to Configure"
-		text}  
-def mDefaultsS() {def result = ""
-    if (cLevel || cVolLevel || cTemperature || cHigh || cMedium || cLow || cFanLevel || cInactiveDev || cFilterReplacement || cFilterSynthDevice || cFilterSonosDevice) {
-    	result = "complete"}
-   		result}
-def mDefaultsD() {def text = "Tap here to configure settings" 
-    if (cLevel || cVolLevel || cTemperature || cHigh || cMedium || cLow || cFanLevel || cInactiveDev || cFilterReplacement || cFilterSynthDevice || cFilterSonosDevice) {
-    	text = "Configured"}
-    	else text = "Tap to Configure"
-		text}         
-def mSecurityS() {def result = ""
-                  if (ctStat || cPIN || uPIN_Mode) { // || uPIN-S || uPIN-T) { // || uPIN-D) { // || uPIN-L) {
-    	result = "complete"}
-   		result}
-def mSecurityD() {def text = "Tap here to configure settings" 
-                  if (ctStat || cPIN || uPIN_Mode) { // || uPIN-S || uPIN-T) { // || uPIN-D) { // || uPIN-L) {
-    	text = "Configured"}
-    	else text = "Tap to Configure"
-		text}
         
