@@ -862,7 +862,7 @@ def pSend(){
         }    
         section ("") {
             if (speakDisable==true) {
-        	input "echoDevice", "capability.notification", title: "Amazon Alexa Devices", multiple: true, required: false
+        	input "echoDevice", "device.echoSpeaksDevice", title: "Amazon Alexa Devices", multiple: true, required: false
             input "sonosDevice", "capability.musicPlayer", title: "Music Player Devices", required: false, multiple: true, submitOnChange: true    
             if (sonosDevice) {
                 input "volume", "number", title: "Temporarily change volume", description: "0-100% (default value = 30%)", required: false
@@ -2595,13 +2595,13 @@ def ttsActions(Message) {
         def tts = Message
         if (speakDisable == true) {
             if (echoDevice) {
-				settings.echoDevice.each { spk->
-                		spk.speak(tts, spk)
+            	settings.echoDevice.each { spk->
+                		spk.speak(Message)
 				}
             }     
            	if (synthDevice) {
             	settings?.synthDevice?.each { spk->
-                	spk?.speak(message)
+                	spk?.speak(Message)
                     }
             }
             if (tts) {

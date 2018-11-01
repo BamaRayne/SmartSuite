@@ -86,7 +86,7 @@ def messages() {
     dynamicPage (name: "messages", title: "", install: false, uninstall: installed) {
         section("Configure and Control Communication Devices"){
             app(name: "Smart Message Control", appName: "Smart Message Control", title: "Smart Message Control", namespace: "Echo", multiple: false,  uninstall: false,
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC.png")
+            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Audio.png")
         }
         section("Intelligent Communications with your Home"){
             app(name: "EchoSistant v4.5", appName: "EchoSistant v4.5", title: "EchoSistant v4.5", namespace: "Echo", multiple: false,  uninstall: false,

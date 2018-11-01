@@ -216,7 +216,7 @@ def mainPage(params) {
 				}
 
 				section ("Output to Devices:", hideWhenEmpty: true) {
-                    input "echoDevice", "capability.notification", title: "Amazon Alexa Devices", multiple: true, required: false, submitOnChange: true, image: getAppImg("media_player.png")
+                    input "echoDevice", "device.echoSpeaksDevice", title: "Amazon Alexa Devices", multiple: true, required: false, submitOnChange: true, image: getAppImg("media_player.png")
 					input "myNotifyDevice", "capability.notification", title: "Display on this Notification Capable Device(s)", required: false, multiple: true, submitOnChange: true, image: getAppImg("notification_device.png")
 					input "mySonosDevices", "capability.musicPlayer", title: "Select Music Player(s) to Play to", required: false, multiple: true, submitOnChange: true, image: getAppImg("media_player.png")
 					if (settings?.mySonosDevices) {
@@ -1691,8 +1691,12 @@ def alertsHandler(evt) {
 	}
 	String dCapability = getDeviceCapName(evtName)
 	Integer delayMinutes = (dCapability && settings["${dCapability}Minutes"]) ? settings["${dCapability}Minutes"] : null
-	Map data = [deviceName: evtDevice?.label, attributeName: evtValue, capabilityName: "${evtName}", inputName: dCapability]
+	Map data = [deviceName: evtDevice, attributeName: evtValue, capabilityName: "${evtName}", inputName: dCapability]
 	state?.lastEventData = data
+	if(smc) {
+    sendLocationEvent(name: "RemindRevent", value: "${app.label}", isStateChange: true, descriptionText: "${eTxt}")
+    log.trace "event information sent to speaker control: $eTxt"
+    }
     if(echoDevice || ok2Proceed()) {
 		if (dCapability && delayMinutes && evtName != "delay") {	
 			log.warn "scheduling delay with data: $data"

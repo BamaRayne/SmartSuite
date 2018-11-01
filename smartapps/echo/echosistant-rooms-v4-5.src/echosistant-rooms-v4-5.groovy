@@ -340,8 +340,8 @@ page name: "pSend"
 def pSend(){
     dynamicPage(name: "pSend", title: "Audio and Text Message Settings", uninstall: false){
         section ("") {
-        	input "echoDevice", "capability.notification", title: "Amazon Alexa Devices", multiple: true, required: false
-            	input "eVolume", "number", title: "Set the volume", description: "1-10 (default value = 3)", required: false, defaultValue: 3
+        	input "echoDevice", "device.echoSpeaksDevice", title: "Amazon Alexa Devices", multiple: true, required: false
+            //	input "eVolume", "number", title: "Set the volume", description: "1-10 (default value = 3)", required: false, defaultValue: 3
             }
         section (""){
             input "synthDevice", "capability.speechSynthesis", title: "Speech Synthesis Devices", multiple: true, required: false
@@ -352,9 +352,9 @@ def pSend(){
                 input "volume", "number", title: "Temporarily change volume", description: "0-100% (default value = 30%)", required: false
             	}
             }
-        section ("") {
-        	input "smc", "bool", title: "Send the message to Smart Message Control", default: false, submitOnChange: true
-            }
+//        section ("") {
+//        	input "smc", "bool", title: "Send the message to Smart Message Control", default: false, submitOnChange: true
+//            }
         section ("" ) {
             input "sendText", "bool", title: "Enable Text Notifications", required: false, submitOnChange: true     
             if (sendText){      
@@ -1609,10 +1609,10 @@ log.info "ttsactions have been called by: $tts"
                 synthDevice?.speak(String) 
                 if (parent.debug) log.debug "Sending message to Synthesis Devices"
             }
-            if (smc) {
-            	sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 Room: $app.label", isStateChange: true, descriptionText: "${tts}")
-                log.info "Message sent to Smart Message Control: Msg = $tts"
-                }
+//            if (smc) {
+//            	sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 Room: $app.label", isStateChange: true, descriptionText: "${tts}")
+//                log.info "Message sent to Smart Message Control: Msg = $tts"
+//                }
             if (echoDevice) {
             	settings.echoDevice.each { spk->
                 		spk.speak(String)
@@ -1637,10 +1637,6 @@ log.info "ttsactions have been called by: $tts"
                 sonosDevice?.playTrackAndResume(state.sound.uri, state.sound.duration, sVolume)
                 if (parent.debug) log.info "Playing message on the music player '${sonosDevice}' at volume '${volume}'" 
             }
-
-//if (echoDevice) {
-//echoDevice?.setVolumeAndSpeak(eVolume, msg)
-//                }
         }
         if(recipients || sms){				//if(recipients.size()>0 || sms.size()>0){ removed: 2/18/17 Bobby
             sendtxt(ttx)
@@ -2723,6 +2719,9 @@ page name: "reminderDevices1"
 def reminderDevices1(){
     dynamicPage(name: "reminderDevices1", title: "Configure Reminder Output Types", uninstall: false) {
 		section ("") {
+        	input "remindSMC1", "bool", title: "Send to Smart Message Control", required: false, submitOnChange: true, defaultValue: false
+        }    
+        section ("") {
         	input "remindEchoDevice1", "capability.notification", title: "Play on this Amazon Echo Device(s)", required: false, multiple: true, submitOnChange: true
         }
 		section ("") {
@@ -2778,7 +2777,7 @@ private takeAction() {
 	if (fRecurring1 && fMinutes1 && state.fSched1 == "0") {
     	followUpSched1(sched)
         tts = "Attention, This is your follow-up reminder. This reminder will repeat every $fMinutes1 minutes until you manually reset it. " +
-        " so please, pay " + reminderText
+        " so please, pay Attention. " + reminderText
         	}
         else if (fMinutes1 && state.fSched1 == "0") {
     	tts = "Attention, This is your only follow-up reminder, it has been $fMinutes1 minutes since your task was due, so please, pay close " + reminderText
@@ -2788,13 +2787,19 @@ private takeAction() {
     if (fMinutes1 && state.fSched1 == "1") { 
     	followUpSched1(sched) 
         state.fSched1 = "0"}
+        	if (remindSMC1 == true) {
+            	sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 Room: $app.label", isStateChange: true, descriptionText: "${tts}")
+                }
+            if (remindEchoDevice1) {	
 			settings.remindEchoDevice1.each { dev->
    			dev.speak(tts)
 			}
+            if (notifyDevice1) {
 			settings.notifyDevice1.each { dev->
    			dev.speak(tts)
 			}
-
+		}
+    }    
 
     if (synthDevice) {
         synthDevice?.speak(tts) 

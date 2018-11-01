@@ -24,9 +24,9 @@ definition(
 	description		: "Smart Message Controls - Only send messages where they will be heard",
 	category		: "My Apps",
     parent			: "Echo:Smart Message Control",
-	iconUrl			: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC.png",
-	iconX2Url		: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMC2x.png",
-	iconX3Url		: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/SMCx.png")
+	iconUrl			: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Audio.png",
+	iconX2Url		: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Audio2x.png",
+	iconX3Url		: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Audiox.png")
 /**********************************************************************************************************************************************/
 private def version() { 
     	def text = "Smart Message Control Ver 1.0 / R.0.0.1, Release date: in development, Initial App Release Date: not released" 
@@ -90,7 +90,7 @@ def speakers() {
         	input "synthDevice", "capability.speechSynthesis", title: "Speech Synthesis Devices", multiple: true, required: false
         	}
         section ("") {
-        	input "echoDevice", "capability.notification", title: "Amazon Alexa Devices", multiple: true, required: false
+        	input "echoDevice", "device.echoSpeaksDevice", title: "Amazon Alexa Devices", multiple: true, required: false
             }
         section ("") {
             input "sonosDevice", "capability.musicPlayer", title: "Music Player Devices", required: false, multiple: true, submitOnChange: true    
