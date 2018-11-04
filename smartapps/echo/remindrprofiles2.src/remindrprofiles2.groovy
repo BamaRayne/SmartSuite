@@ -115,7 +115,7 @@ private appMigration() {
 		"resumePlaying":"mySonosResume", "sonosDelayFirst":"mySonosDelay1", "sonosDelay":"mySonosDelay2", "speechSynth":"mySpeechDevices", "speechVolume":"mySpeechVolume",
 		"delayFirst":"mySpeechDelay1", "stVoice":"ttsVoiceStyle", "retrigger":"retriggerSched", "howManyTimes":"retriggerCount", "continueOnChange":"retriggerCancelOnChange",
 		"cSound":"custSoundUrl", "cDuration":"custSoundDuration", "introSound":"playCustIntroSound", "iSound":"custIntroSoundUrl", "iDuration":"custIntroSoundDuration", "myPiston":"webCorePistons",
-		"threshold":"myPowerThresholdStart", "thresholdStop":"myPowerThresholdStop", "buttonNum":"myButtonNum"
+		"threshold":"myPowerThresholdStart", "thresholdStop":"myPowerThresholdStop", "buttonNum":"myButtonNum", "smc":"bool"
 	]
 	if(settings?.actionType) {
 		state?.actionType = settings?.actionType
@@ -216,7 +216,7 @@ def mainPage(params) {
 				}
 
 				section ("Output to Devices:", hideWhenEmpty: true) {
-                    input "echoDevice", "device.echoSpeaksDevice", title: "Amazon Alexa Devices", multiple: true, required: false, submitOnChange: true, image: getAppImg("media_player.png")
+                    input "echoDevice", "capability.notification", title: "Amazon Alexa Devices", multiple: true, required: false, submitOnChange: true, image: getAppImg("media_player.png")
 					input "myNotifyDevice", "capability.notification", title: "Display on this Notification Capable Device(s)", required: false, multiple: true, submitOnChange: true, image: getAppImg("notification_device.png")
 					input "mySonosDevices", "capability.musicPlayer", title: "Select Music Player(s) to Play to", required: false, multiple: true, submitOnChange: true, image: getAppImg("media_player.png")
 					if (settings?.mySonosDevices) {
@@ -1691,12 +1691,8 @@ def alertsHandler(evt) {
 	}
 	String dCapability = getDeviceCapName(evtName)
 	Integer delayMinutes = (dCapability && settings["${dCapability}Minutes"]) ? settings["${dCapability}Minutes"] : null
-	Map data = [deviceName: evtDevice, attributeName: evtValue, capabilityName: "${evtName}", inputName: dCapability]
+	Map data = [deviceName: evtDevice?.label, attributeName: evtValue, capabilityName: "${evtName}", inputName: dCapability]
 	state?.lastEventData = data
-	if(smc) {
-    sendLocationEvent(name: "RemindRevent", value: "${app.label}", isStateChange: true, descriptionText: "${eTxt}")
-    log.trace "event information sent to speaker control: $eTxt"
-    }
     if(echoDevice || ok2Proceed()) {
 		if (dCapability && delayMinutes && evtName != "delay") {	
 			log.warn "scheduling delay with data: $data"
@@ -2610,7 +2606,7 @@ Boolean onceDailyOk(Long lastPlayed) {
 	if (settings?.onceDaily) {
 		def today = new Date(now()).format("EEEE, MMMM d, yyyy", location.timeZone)
 		def lastTime = new Date(lastPlayed).format("EEEE, MMMM d, yyyy", location.timeZone)
-		result = (lastPlayed ? (today != lastTime) : true)
+		result = (lastPlayed ? (today != lastTime) : false)
 		log.trace "oncePerDayOk = $result"
 	}
 	return result
