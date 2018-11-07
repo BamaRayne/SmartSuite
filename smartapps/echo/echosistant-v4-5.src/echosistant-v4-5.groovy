@@ -74,7 +74,7 @@ def mainParentPage() {
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Routines.png"
         }
         section ("") {
-            href "mIntent", title: "Configure System Settings and Defaults",//, description: mIntentD(), state: mIntentS(), 
+            href "mIntent", title: "Configure System Settings and Defaults", description: mIntentD(), state: mIntentS(), 
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Config.png"
         }
         section ("") {    
@@ -87,10 +87,10 @@ def mainParentPage() {
 page name: "mIntent"
 def mIntent() {
     dynamicPage (name: "mIntent", title: "Settings and Support", install: false, uninstall: false) {
-        section ("") {
-            href "mDefaults", title: "System and Device Defaults", description: mDefaultsD(), state: mDefaultsS(),
-            image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Routines.png"
-            }
+//        section ("") {
+//            href "mDefaults", title: "System and Device Defaults", description: mDefaultsD(), state: mDefaultsS(),
+//            image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Routines.png"
+//            }
         section ("") {
             href "mSecurity", title: "Smart Home Monitor Status Changes", description: mSecurityD(), state: mSecurityS(),
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Rest.png"
@@ -974,4 +974,42 @@ def mSupportD() {
     text
 }
 
+def mIntentS(){
+	def result = ""
+    def IntentS = ""
+    if (cSwitch || cFan || cDoor || cRelay || cTstat || cIndoor || cOutDoor || cVent || cMotion || cContact || cWater || cPresence || cSpeaker || cSynth || cMedia || cBattery) {
+    	IntentS = "comp"
+        result = "complete"
+    }    	
+    	result
+}
+def mIntentD() {
+    def text = "Tap here to Configure"
+	def mIntentS = mIntentS()
+    if (mIntentS) 
+    {
+        text = "Configured"
+    }
+    else text = "Tap here to Configure"
+	    text
+} 
+def mDefaultsS() {def result = ""
+    if (cLevel || cVolLevel || cTemperature || cHigh || cMedium || cLow || cFanLevel || cLowBattery || cInactiveDev || cFilterReplacement || cFilterSynthDevice || cFilterSonosDevice) {
+    	result = "complete"}
+   		result}
+def mDefaultsD() {def text = "Tap here to configure settings" 
+    if (cLevel || cVolLevel || cTemperature || cHigh || cMedium || cLow || cFanLevel || cLowBattery || cInactiveDev || cFilterReplacement || cFilterSynthDevice || cFilterSonosDevice) {
+    	text = "Configured"}
+    	else text = "Tap to Configure"
+		text}         
+def mSecurityS() {def result = ""
+    if (cMiscDev || cRoutines || uPIN_SHM || uPIN_Mode || fSecFeed || shmSynthDevice || shmSonosDevice || volume || resumePlaying) {
+    	result = "complete"}
+   		result}
+def mSecurityD() {def text = "Tap here to configure settings" 
+    if (cMiscDev || cRoutines || uPIN_SHM || uPIN_Mode || fSecFeed || shmSynthDevice || shmSonosDevice || volume || resumePlaying) {
+    	text = "Configured"}
+    	else text = "Tap to Configure"
+		text}
+        
         
