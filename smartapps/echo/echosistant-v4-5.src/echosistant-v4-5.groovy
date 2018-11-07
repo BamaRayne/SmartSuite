@@ -282,7 +282,7 @@ def updated() {
 }
 def initialize() {
 		//WEBCORE
-        webCoRE_init()
+//        webCoRE_init()
 		//REMINDERS
 		sendLocationEvent(name: "EchoSistant v4.5", value: "refresh", data: [profiles: getProfileList()] , isStateChange: true, descriptionText: "Reminders list refresh")
 		//SHM status change and keypad initialize
