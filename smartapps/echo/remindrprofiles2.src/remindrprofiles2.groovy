@@ -1691,7 +1691,7 @@ def alertsHandler(evt) {
 	}
 	String dCapability = getDeviceCapName(evtName)
 	Integer delayMinutes = (dCapability && settings["${dCapability}Minutes"]) ? settings["${dCapability}Minutes"] : null
-	Map data = [deviceName: evtDevice?.label, attributeName: evtValue, capabilityName: "${evtName}", inputName: dCapability]
+	Map data = [deviceName: evtDevice, attributeName: evtValue, capabilityName: "${evtName}", inputName: dCapability]
 	state?.lastEventData = data
     if(echoDevice || ok2Proceed()) {
 		if (dCapability && delayMinutes && evtName != "delay") {	

@@ -1,6 +1,7 @@
 /* 
 * EchoSistant Rooms Profile - EchoSistant Add-on 
 *
+*		11/07/2018		Version:4.5 R.0.0.4		Feedback update: added ability to ask "Is the alarm on/off" also "Is the garage door open/closed"
 *		10/26/2018		Version:4.5 R.0.0.3		Re-release
 *		9/12/2018		Version:4.5 R.0.0.2		Rework for streamlining and added Echo Device selection
 *		6/12/2017		Version:4.5 R.0.0.1		Alpha Release
@@ -341,7 +342,7 @@ def pSend(){
     dynamicPage(name: "pSend", title: "Audio and Text Message Settings", uninstall: false){
         section ("") {
         	input "echoDevice", "device.echoSpeaksDevice", title: "Amazon Alexa Devices", multiple: true, required: false
-            //	input "eVolume", "number", title: "Set the volume", description: "1-10 (default value = 3)", required: false, defaultValue: 3
+//            	input "eVolume", "number", title: "Set the volume", description: "0-100 (default value = 30)", required: false, defaultValue: 30
             }
         section (""){
             input "synthDevice", "capability.speechSynthesis", title: "Speech Synthesis Devices", multiple: true, required: false
@@ -352,9 +353,9 @@ def pSend(){
                 input "volume", "number", title: "Temporarily change volume", description: "0-100% (default value = 30%)", required: false
             	}
             }
-//        section ("") {
-//        	input "smc", "bool", title: "Send the message to Smart Message Control", default: false, submitOnChange: true
-//            }
+        section ("") {
+        	input "smc", "bool", title: "Send the message to Smart Message Control", default: false, submitOnChange: true
+            }
         section ("" ) {
             input "sendText", "bool", title: "Enable Text Notifications", required: false, submitOnChange: true     
             if (sendText){      
@@ -797,6 +798,7 @@ def profileFeedbackEvaluate(params) {
            if(parent.debug) log.debug "I have received a feedback command: ${command}, deviceType:  ${deviceType}, with this text: ${tts}"
 
 
+
 		//  FEEDBACK HANDLER
 
           def fDevice = tts.contains("garage") ? fGarage : tts.contains("vent") ? fVents : tts.contains("light") ? fSwitches : tts.contains("door") ? fDoors : tts.contains("window") ? fWindows : tts.contains("fan") ? fFans : 
@@ -890,6 +892,52 @@ def profileFeedbackEvaluate(params) {
                 return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN] 
             }
             
+            //  GARAGE DOOR STATUS
+            if (tts.contains("is the garage door")) {
+            	def gDoorStatus = fGarage?.latestValue("door")
+                log.info "garage door status is: $gDoorStatus"
+                	if (tts.contains("open")) {
+                    	if (gDoorStatus.contains("open")) {
+                        	outputTxt = "Yes, the garage door is open"
+                    		}
+                		if (gDoorStatus.contains("closed")) {
+                			outputTxt = "No, the garage door is closed"
+                            }
+                        }    
+                	if (tts.contains("closed")) {
+                		if (gDoorStatus.contains("open")) {
+                			outputTxt = "No, the garage door is open"
+                    		}
+                		if (gDoorStatus.contains("closed")) {
+                			outputTxt = "Yes, the garage door is closed"
+                            }
+                        }
+					return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]		
+                    }    
+
+            //  SMART HOME MONITOR STATUS
+            if (tts.contains("is the alarm")) {
+            	def currentSHM = location.currentState("alarmSystemStatus")?.value
+                	if (tts.contains("on") || tts.contains("armed")) {
+                    if (currentSHM == ("stay") || currentSHM == ("away")) {
+                    	outputTxt = "Yes, the alarm is currently set to $currentSHM"
+                        }
+                    if (currentSHM == ("off")) {
+                    	outputTxt = "No, the alarm is currently disarmed"
+                        }
+                    }
+                	if (tts.contains("off") || tts.contains("disarmed")) {
+                    if (currentSHM == ("stay") || currentSHM == ("away")) {
+                    	outputTxt = "No, the alarm is currently set to $currentSHM"
+                        }
+                    if (currentSHM == ("off")) {
+                    	outputTxt = "Yes, the alarm is currently disarmed"
+                        }
+                    }
+                return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN] 
+            }
+            
+                        
             //  MODE STATUS FEEDBACK
             if (tts.contains("mode")) {
                 outputTxt = "The Current Mode is " + location.currentMode      
@@ -1609,11 +1657,19 @@ log.info "ttsactions have been called by: $tts"
                 synthDevice?.speak(String) 
                 if (parent.debug) log.debug "Sending message to Synthesis Devices"
             }
-//            if (smc) {
-//            	sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 Room: $app.label", isStateChange: true, descriptionText: "${tts}")
-//                log.info "Message sent to Smart Message Control: Msg = $tts"
-//                }
+            if (smc) {
+            	sendLocationEvent(name: "EchoSistantMsg", value: "ESv4.5 Room: $app.label", isStateChange: true, descriptionText: "${tts}")
+                log.info "Message sent to Smart Message Control: Msg = $tts"
+                }
             if (echoDevice) {
+//				def volCtrl = "https://music.amazon.com/artists/B000QJY4YI/LIBRARY?ref=dm_wcp_artist_link_up"
+//                	settings.echoDevice.each { spk->
+//                    	spk.play(volCtrl)
+//                        spk.setLevel(eVolume)
+//                        spk.speak(String)
+//                        }
+//                        }
+//                        }
             	settings.echoDevice.each { spk->
                 		spk.speak(String)
 				}
