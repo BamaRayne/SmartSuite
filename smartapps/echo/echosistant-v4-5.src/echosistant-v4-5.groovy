@@ -74,7 +74,7 @@ def mainParentPage() {
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Routines.png"
         }
         section ("") {
-            href "mIntent", title: "Configure System Settings and Defaults", description: mIntentD(), state: mIntentS(), 
+            href "mIntent", title: "Configure System Settings and Defaults",//, description: mIntentD(), state: mIntentS(), 
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Config.png"
         }
         section ("") {    
