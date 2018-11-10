@@ -87,10 +87,10 @@ def mainParentPage() {
 page name: "mIntent"
 def mIntent() {
     dynamicPage (name: "mIntent", title: "Settings and Support", install: false, uninstall: false) {
-//        section ("") {
-//            href "mDefaults", title: "System and Device Defaults", description: mDefaultsD(), state: mDefaultsS(),
-//            image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Routines.png"
-//            }
+        section ("") {
+            href "mDefaults", title: "System and Device Defaults", description: mDefaultsD(), state: mDefaultsS(),
+            image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Routines.png"
+            }
         section ("") {
             href "mSecurity", title: "Smart Home Monitor Status Changes", description: mSecurityD(), state: mSecurityS(),
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/Echosistant_Rest.png"
@@ -120,7 +120,51 @@ def mSecurity(){
         }
     }
 }
-		
+
+page name: "mDefaults"
+def mDefaults(){
+    dynamicPage(name: "mDefaults", title: "", uninstall: false){
+        section ("General Control") {            
+            input "cLevel", "number", title: "Alexa Adjusts Light Levels by using a scale of 1-10 (default is +/-3)", defaultValue: 3, required: false
+            input "cVolLevel", "number", title: "Alexa Adjusts the Volume Level by using a scale of 1-10 (default is +/-2)", defaultValue: 2, required: false
+            input "cTemperature", "number", title: "Alexa Automatically Adjusts temperature by using a scale of 1-10 (default is +/-1)", defaultValue: 1, required: false						
+        }
+        section ("Fan Control") {            
+            input "cHigh", "number", title: "Alexa Adjusts High Level to 99% by default", defaultValue: 99, required: false
+            input "cMedium", "number", title: "Alexa Adjusts Medium Level to 66% by default", defaultValue: 66, required: false
+            input "cLow", "number", title: "Alexa Adjusts Low Level to 33% by default", defaultValue: 33, required: false
+            input "cFanLevel", "number", title: "Alexa Automatically Adjusts Ceiling Fans by using a scale of 1-100 (default is +/-33%)", defaultValue: 33, required: false
+        }
+        section ("Activity Defaults") {            
+            input "cLowBattery", "number", title: "Alexa Provides Low Battery Feddback when the Bettery Level falls below (default is 25%)", defaultValue: 25, required: false
+            input "cInactiveDev", "number", title: "Alexa Provides Inactive Device Feddback when No Activity was Detected for (default is 24 hours) ", defaultValue: 24, required: false
+        }
+        section ("Alexa Voice Settings") {            
+            input "pDisableContCmds", "bool", title: "Disable Conversation (Alexa no longer prompts for additional commands except for 'try again' if an error ocurs)?", required: false, defaultValue: false
+            input "pEnableMuteAlexa", "bool", title: "Disable Feedback (Silence Alexa - it no longer provides any responses)?", required: false, defaultValue: false
+            input "pUseShort", "bool", title: "Use Short Alexa Answers (Alexa provides quick answers)?", required: false, defaultValue: false
+        }
+
+        section ("HVAC Filters Replacement Reminders", hideWhenEmpty: true, hideable: true, hidden: false) {            
+            input "cFilterReplacement", "number", title: "Alexa Automatically Schedules HVAC Filter Replacement in this number of days (default is 90 days)", defaultValue: 90, required: false                        
+            input "cFilterSynthDevice", "capability.speechSynthesis", title: "Send Audio Notification when due, to this Speech Synthesis Type Device(s)", multiple: true, required: false
+            input "cFilterSonosDevice", "capability.musicPlayer", title: "Send Audio Notification when due, to this Sonos Type Device(s)", required: false, multiple: true   
+            if (cFilterSonosDevice) {
+                input "volume", "number", title: "Temporarily change volume", description: "0-100%", required: false
+                input "resumePlaying", "bool", title: "Resume currently playing music after notification", required: false, defaultValue: false
+            }
+            if (location.contactBookEnabled){
+                input "recipients", "contact", title: "Send Text Notification when due, to this recipient(s) ", multiple: true, required: false
+            }
+            else {      
+                input name: "sms", title: "Send Text Notification when due, to this phone(s) ", type: "phone", required: false
+                paragraph "You may enter multiple phone numbers separated by semicolon (E.G. 8045551122;8046663344)"
+                input "push", "bool", title: "Send Push Notification too?", required: false, defaultValue: false
+            }
+        }                     
+    }
+}
+
 page name: "mProfiles"    
 def mProfiles() {
     dynamicPage (name: "mProfiles", title: "Create and Manage Rooms", install: true, uninstall: false) {

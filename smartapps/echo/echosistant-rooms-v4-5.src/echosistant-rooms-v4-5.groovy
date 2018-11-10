@@ -1,6 +1,7 @@
 /* 
 * EchoSistant Rooms Profile - EchoSistant Add-on 
 *
+*		11/08/2018		Version:4.5 R.0.0.5		Feedback update: added Alexa Device capabilities, power meters
 *		11/07/2018		Version:4.5 R.0.0.4		Feedback update: added ability to ask "Is the alarm on/off" also "Is the garage door open/closed"
 *		10/26/2018		Version:4.5 R.0.0.3		Re-release
 *		9/12/2018		Version:4.5 R.0.0.2		Rework for streamlining and added Echo Device selection
@@ -173,6 +174,12 @@ def fDevices(){
             input "fLock", "capability.lock", title: "Smart Locks...", multiple: true, required: false
         	input "fPresence", "capability.presenceSensor", title: "Presence Sensors...", required: false, multiple: true
         	input "fMotion", "capability.motionSensor", title: "Motion Sensors...", required: false, multiple: true
+        }
+        section("Power Meters") {
+        	input "fPower", "capability.powerMeter", title: "Power Meters...", multiple: true, required: false
+//            	if (fPower) {
+//                	input "fCosts", "string", title: "What is your cost per kilowatt hour?", required: false, defaultValue: 0.012, submitOnChange: true
+//        	}
         }
     }
 }   
@@ -801,10 +808,10 @@ def profileFeedbackEvaluate(params) {
 
 		//  FEEDBACK HANDLER
 
-          def fDevice = tts.contains("garage") ? fGarage : tts.contains("vent") ? fVents : tts.contains("light") ? fSwitches : tts.contains("door") ? fDoors : tts.contains("window") ? fWindows : tts.contains("fan") ? fFans : 
+          def fDevice = tts.contains("power") ? fPower: tts.contains("garage") ? fGarage : tts.contains("vent") ? fVents : tts.contains("light") ? fSwitches : tts.contains("door") ? fDoors : tts.contains("window") ? fWindows : tts.contains("fan") ? fFans : 
             tts.contains("motion") ? fMotion : tts.contains("lock") ? fLocks : tts.contains("shade") ? fShades : tts.contains("curtains") ? fShades : tts.contains("blinds") ? fShades : tts.startsWith("who") ? fPresence : tts.contains("batteries") ? fBattery : null
             
-          def fValue = tts.contains("garage") ? "contact" : tts.contains("vent") ? "switch" : tts.contains("light") ? "switch" : tts.contains("door") ? "contact" : tts.contains("window") ? "contact" : tts.contains("fan") ? "switch" : 
+          def fValue = tts.contains("power") ? "powerMeter" : tts.contains("garage") ? "contact" : tts.contains("vent") ? "switch" : tts.contains("light") ? "switch" : tts.contains("door") ? "contact" : tts.contains("window") ? "contact" : tts.contains("fan") ? "switch" : 
             tts.contains("lock") ? "lock" : tts.contains("shade") ? "windowShade" : tts.contains("blind") ? "windowShade" :  tts.contains("who") ? "presence" : tts.contains("curtains") ? "windowShade" : null
             
           def fName = tts.contains("motion") ? "motion sensors" : tts.contains("vent") ? "vent" : tts.contains("lock") ? "lock" : tts.contains("door") ? "door" : tts.contains("window") ? "window" : tts.contains("fan") ? "fan" : 
@@ -819,7 +826,35 @@ def profileFeedbackEvaluate(params) {
           	if (tts.contains("lock") || tts.contains("door") || tts.contains("window") || tts.contains("vent") || tts.contains("shades") || tts.contains("blind") || tts.contains("curtain")) {
           		fCommand = "open" }}
 			
-            // TEMPERATURE //
+		// ALEXA DEVICES - LAST THING SPOKEN
+        if (tts.contains("last thing said")) {
+        	def result = "The last thing spoken on the " +  "${sSpeaker}" + " was, " + sSpeaker.currentState("lastSpeakCmd")?.stringValue
+            log.info "Alexa Device: Last speak cmd was --> $result"
+            outputTxt = stripBrackets(result ? " $result " : "")
+            return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
+			}
+        // ALEXA DEVICE - WAKE WORD
+        if (tts.contains("wake word")) {
+        	def result = "The wake word for the " +  "${sSpeaker}" + " is, " + sSpeaker.currentState("alexaWakeWord")?.stringValue
+            log.info "Alexa Device: Wake Word is --> $result"
+            outputTxt = stripBrackets(result ? " $result " : "")
+            return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
+			}
+        // ALEXA DEVICE - VOLUME
+        if (tts.contains("what is the volume set to")) {
+            def result = "The volume in the $app.label is set to " + sSpeaker.currentState("level")?.stringValue + " percent"
+            log.info "$app.label: Volume Level is --> $result"
+            outputTxt = stripBrackets(result ? " $result " : "")
+            return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
+			}
+        // ALEXA DEVICE - WHATS PLAYING
+        if (tts.contains("what is playing") || tts.contains("what was the last song")) {
+        	outputTxt = "The song " + sSpeaker.currentState("currentStation")?.stringValue + " by " + sSpeaker.currentState("currentAlbum")?.stringValue + " was the last thing played in the $app.label"
+            log.info "Ask this: $tts, and receive this answer: $outputTxt"
+            return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
+			}
+            
+		// TEMPERATURE //
             if (tts == "what is the temperature" || tts == "whats the temperature" || tts == "whats the temp"){
                 if(fTemp){
                     def sensors = fTemp?.size()
@@ -849,6 +884,27 @@ def profileFeedbackEvaluate(params) {
                 }                            
             }
             
+            // POWER CONSUMPTION
+            	if (tts.contains("how much power") || tts.contains("power usage")) {
+        		def result 
+                def sensor = fPower?.size()
+                def powerAVG = fPower ? getAverage(fPower, "power") : "undefined device"
+                def longWatts = "(Consumed: ${fPower.currentState('energy')?.value}kWh))\nMaximum of ${fPower.currentState('powerTwo')?.value}"
+                def currWatts = (fPower.currentState('powerDisp'))?.value
+                def wattsUsed = (fPower.currentState('energy'))?.value 
+                def watts = stripBrackets(wattsUsed ? " $wattsUsed " : "")
+                def resetDate = (fPower.currentState('powerOne'))?.value
+                
+                if (fPower?.size() > 1) {
+                	result = "There is currently an average of $powerAVG watts being used by the following devices: $fPower"
+                	} 
+                    else {
+                    	result = "There is currently $powerAVG watts being used by the $fPower" 
+                        }
+            	log.info "$fPower Device: power usage is --> $result"
+            	outputTxt = stripBrackets(result ? " $result " : "")
+            	return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
+				}
             
             /// CHECK FOR MOTION
             if (tts.contains("motion") || tts=="is there" || tts=="is anyone" || tts=="is there anyone" || tts=="is something moving" || tts=="is someone" || tts=="is there someone") {
@@ -916,22 +972,19 @@ def profileFeedbackEvaluate(params) {
                     }    
 
             //  SMART HOME MONITOR STATUS
-            if (tts.contains("is the alarm")) {
+            if (tts.contains("is the alarm") || tts.contains("security system")) {
             	def currentSHM = location.currentState("alarmSystemStatus")?.value
-                	if (tts.contains("on") || tts.contains("armed")) {
-                    if (currentSHM == ("stay") || currentSHM == ("away")) {
-                    	outputTxt = "Yes, the alarm is currently set to $currentSHM"
-                        }
+                def shmStatus = currentSHM == "stay" ? "armed home" : currentSHM == "away" ? "armed away" : currentSHM == "off" ? "set to disarmed" : null
+                   	if (tts.contains("on") || tts.contains("armed")) {
+                        outputTxt = "Yes, the alarm is currently set to $shmStatus"
                     if (currentSHM == ("off")) {
-                    	outputTxt = "No, the alarm is currently disarmed"
+                        outputTxt = "No, the alarm is currently $shmStatus"
                         }
                     }
                 	if (tts.contains("off") || tts.contains("disarmed")) {
-                    if (currentSHM == ("stay") || currentSHM == ("away")) {
-                    	outputTxt = "No, the alarm is currently set to $currentSHM"
-                        }
+                    	outputTxt = "No, the alarm is currently set to $shmStatus"
                     if (currentSHM == ("off")) {
-                    	outputTxt = "Yes, the alarm is currently disarmed"
+                    	outputTxt = "Yes, the alarm is currently $shmStatus"
                         }
                     }
                 return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN] 
@@ -1111,6 +1164,12 @@ def profileEvaluate(params) {
             log.info "the result returned was: $outputTxt"
             return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
         }
+        if (tts.contains("do not disturb")) {
+        	log.info "setting DnD start"
+        	outputTxt = "ok, I'm turning off all notifications in the $app.label"
+            echoDevice.doNotDisturbOff(false)
+            log.info "setting DnD"
+        }    
         def getCMD = getCommand(tts) 
         deviceType = getCMD.deviceType
         command = getCMD.command
