@@ -841,7 +841,7 @@ def profileFeedbackEvaluate(params) {
             return ["outputTxt":outputTxt, "pContCmds":state.pContCmds, "pShort":state.pShort, "pContCmdsR":state.pContCmdsR, "pTryAgain":state.pTryAgain, "pPIN":pPIN]
 			}
         // ALEXA DEVICE - VOLUME
-        if (tts.contains("what is the volume set to")) {
+        if (tts.contains("what is the volume")) {
             def result = "The volume in the $app.label is set to " + sSpeaker.currentState("level")?.stringValue + " percent"
             log.info "$app.label: Volume Level is --> $result"
             outputTxt = stripBrackets(result ? " $result " : "")
