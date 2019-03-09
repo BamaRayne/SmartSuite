@@ -89,7 +89,7 @@ def messages() {
             image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Audio.png")
         }
         section("Intelligent Communications with your Home"){
-            app(name: "EchoSistant v4.5", appName: "EchoSistant v4.5", title: "EchoSistant v4.5", namespace: "Echo", multiple: false,  uninstall: false,
+            app(name: "EchoSistant", appName: "EchoSistant", title: "EchoSistant", namespace: "Echo", multiple: false,  uninstall: false,
             image: "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-Echosistant.png")
         }
     }

@@ -91,6 +91,8 @@ def speakers() {
         	}
         section ("") {
         	input "echoDevice", "device.echoSpeaksDevice", title: "Amazon Alexa Devices", multiple: true, required: false
+            	if (echoDevice) { input "eVolume", "number", title: "Set the volume", description: "0-100 (default value = 30)", required: false, defaultValue: 30
+                }
             }
         section ("") {
             input "sonosDevice", "capability.musicPlayer", title: "Music Player Devices", required: false, multiple: true, submitOnChange: true    
@@ -1260,7 +1262,7 @@ def ttsActions(evt) {
         def tts = evt.descriptionText
             if (echoDevice) {
 				echoDevice?.each { spk->
-     					spk?.speak(tts)
+     					spk.setVolumeAndSpeak(eVolume, tts)  //spk?.speak(tts)
 					}            	
             	}
             if (synthDevice) {

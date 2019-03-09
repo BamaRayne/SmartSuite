@@ -21,7 +21,7 @@
  *	RemindR V2
  *	House Fan Controller
  *	Logic Rulz
- *  EchoSistant v4.5
+ *  EchoSistant v5.0
  
  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -132,10 +132,12 @@ def updated() {
 }
 def initialize() {
         //Other Apps Events
-        subscribe(location, "EchoSistantMsg", zone)
+        subscribe(location, "SmartMessageControl", zone)
+        subscribe(location, "SmartMessaging", zone)
+//        subscribe(location, "EchoSistantMsg", zone)
         subscribe(location, "RemindRevent", zone)
         subscribe(location, "House Fan Controller", zone) 
-        subscribe(location, "Logic Rulz", zone)
+//        subscribe(location, "Logic Rulz", zone)
 }
 
 public getSMCZones(){
@@ -237,63 +239,21 @@ def zone(evt) {
     IF YOUR APP IS A PARENT/CHILD APP, PLACE ALL
     CODE IN THE CHILD APP.
     
-    ALL MESSAGE DATA MUST BE CHANGED TO "${message}" --> example --> def message = tts
+    ALL MESSAGE DATA MUST BE CHANGED TO "${tts}" --> example --> def tts = Your Message Variable
 ******************************************************************************************
-
-
-/////PLACE THIS IN THE PARENT APP \\\\\\\\\\	
-
---- INITIALIZE ---
-subscribe(location, "SMC", SMCZones)
-
-def listSMCZones() {
-log.warn "child requesting Smart Message Control Zones"
-log.info "Smart Message Control Zones List = $state.zones"
-	return state.zones = state.zones ? state.zones : []
-}
-
-
-def SMCZones(evt) {
-	def result
-    log.warn "received Zones List from Smart Message Control: $evt.data"
-	switch (evt.value) {
-		case "refresh":
-		state.zones = evt.jsonData && evt.jsonData?.zones ? evt.jsonData.zones : []
-			break
-		case "runReport":
-			def zones = evt.jsonData
-            	result = runReport(zones)
-            break	
-    }
-    return result
-}
-
 
 //////////// GIVE USER OPTION TO SEND MESSAGES TO SMC IN CHILD APP \\\\\\\\\\\\\\\\
 
 section ("Send Messages to Smart Message Control") {
    	input "smc", "bool", title: "Send Messages to Smart Message Control"
-    	if (smc) {
-    		input "SMCZones", "enum", title: "Send a message to this Smart Message Zone", options:  parent.listSMCZones(), multiple: true, required: false
-    		}
-        }    
+    }    
 
 /////////// PLACE THIS CODE WHERE YOU WOULD CALL YOUR MESSAGES HANDLER. \\\\\\\\\
 
-if(SMCZones) {
-	sendToSMC(evt)
-	}
 
-
-******************************************************************************************************
-   SEND TO SMART MESSAGE CONTROL HANDLER
-******************************************************************************************************
-def sendToSMC(evt) {
-	log.debug "sending to SMC Zone(s): $zone"
-    def message = YOUR MESSAGE VARIABLE
-    SMCZones.each {zone ->
-    sendLocationEvent(name: "YOUR PARENT APP NAME", value: zone, descriptionText: message)}
-    log.trace "SMC Zone event details: name = LogicRulz, msg = $message, zone = $evt.value, descriptionText = $evt.descriptionText"
-	}
+if (smc) {
+	sendLocationEvent(name: "SmartMessageControl", value: "Your App Name: $app.label", isStateChange: true, descriptionText: "${tts}")
+	log.info "Message sent to Smart Message Control: Msg = $tts"
+}
 
 */
