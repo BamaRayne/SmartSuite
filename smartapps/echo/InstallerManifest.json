@@ -1,0 +1,46 @@
+{
+    "namespace": "Echo",
+    "repoOwner": "bamarayne",
+    "repoName": "SmartSuite",
+    "repoBranch": "master",
+    "name": "Smart Message Control",
+    "author": "bamarayne",
+    "description": "Pick and choose which audio output devices will play your messages.",
+    "category": "My Apps",
+    "bannerUrl": "https://raw.githubusercontent.com/BamaRayne/app-Echosistant.png",
+    "forumUrl": "https://community.smartthings.com/t/release-echosistant-ver4-6/143631?u=bamarayne",
+    "docUrl": "http://thingsthataresmart.wiki/index.php?title=Echosistant",
+    "releaseType": "production",
+    "keywords": [
+        "amazon",
+        "alexa",
+        "echo",
+        "echosistant",
+        "voice",
+        "assistant"
+    ],
+    "notes": "Any important note you want displayed...",
+    "smartApps": {
+        "parent": {
+            "name": "Smart-Message-Control",
+            "iconUrl": "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-Echosistant.png",
+            "published": true,
+            "oAuth": fasle,
+            "version": "1.0",
+            "appSettings": {},
+            "appUrl": "SmartSuite/smartapps/echo/smart-message-control.src/smart-message-control.groovy"
+        },
+        "children": [{
+                "name": "Smart-Message-Control-Zone",
+                "iconUrl": "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-Echosistant.png",
+                "published": true,
+                "oAuth": false,
+                "version": "4.6",
+                "appSettings": {},
+                "appUrl": "SmartSuite/smartapps/echo/smart-message-control-zone/smart-message-control-zone.groovy",
+                "optional": false
+            },
+        ]
+    },
+    "deviceHandlers": []
+}
