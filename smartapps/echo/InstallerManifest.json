@@ -25,7 +25,7 @@
             "name": "Smart-Message-Control",
             "iconUrl": "https://raw.githubusercontent.com/BamaRayne/Echosistant/master/smartapps/bamarayne/echosistant.src/app-Echosistant.png",
             "published": true,
-            "oAuth": fasle,
+            "oAuth": false,
             "version": "1.0",
             "appSettings": {},
             "appUrl": "SmartSuite/smartapps/echo/smart-message-control.src/smart-message-control.groovy"
