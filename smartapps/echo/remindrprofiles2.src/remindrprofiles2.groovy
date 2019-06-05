@@ -901,6 +901,10 @@ def initialize() {
 	stateCleanup()
 	clearRetrigger()
 	subscriber()
+
+        def forecast = get("alerts") //weather.narrative[0..1]
+        log.warn "The forecast is: $forecast"
+
 }
 
 public setDebugVal(val) {
@@ -1899,7 +1903,9 @@ private takeAction(eTxt) {
 	}
     
 	//Playing Audio Message
-	if(smc) { 
+	if(smc) {
+    def message = eTxt
+//    sendLocationEvent(name: "SmartMessaging", value: "${app.label}", isStateChange: true, descriptionText: "${eTxt}")
     sendLocationEvent(name: "RemindRevent", value: "${app.label}", isStateChange: true, descriptionText: "${eTxt}")
     log.trace "event information sent to speaker control: $eTxt"
     }
@@ -2136,7 +2142,7 @@ def mGetWeatherTrigger() {
 	def process = false
 	try {
 		if (getMetric() == false) {
-			def cWeather = getWeatherFeature("conditions", state?.wZipCode)
+			def cWeather = getTwcConditions("conditions", state?.wZipCode)
 			def cTempF = cWeather?.current_observation?.temp_f.toDouble()
 			int tempF = cTempF as Integer
 			def cRelativeHum = cWeather?.current_observation?.relative_humidity
@@ -2150,7 +2156,7 @@ def mGetWeatherTrigger() {
 			if (state?.showDebug) { log.debug "current triggers: precipitation = $precip, humidity = $humid, wind = $wind, temp = $tempF" }
 			myTrigger = settings?.myWeatherTriggers == "Chance of Precipitation (in/mm)" ? precip : settings?.myWeatherTriggers == "Wind Gust (MPH/kPH)" ? wind : settings?.myWeatherTriggers == "Humidity (%)" ? humid : settings?.myWeatherTriggers == "Temperature (F/C)" ? tempF : null
 		} else {
-			def cWeather = getWeatherFeature("conditions", state?.wZipCode)
+			def cWeather = getTwcConditions("conditions", state?.wZipCode)
 			def cTempC = cWeather?.current_observation?.temp_c?.toDouble()
 				int tempC = cTempC as Integer
 			def cRelativeHum = cWeather?.current_observation?.relative_humidity
@@ -2208,7 +2214,7 @@ def mGetWeatherAlerts() {
 	
 	def data = [:]
 	try {
-		def weather = getWeatherFeature("alerts", state?.wZipCode)
+		def weather = getTwcAlerts("alerts", state?.wZipCode)
 		def type = weather?.alerts?.type[0]
 		def alert = weather?.alerts?.description[0]
 		def expire = weather?.alerts?.expires[0]
@@ -2251,7 +2257,7 @@ def mGetCurrentWeather() {
    	def result
 	try {
 		//hourly updates
-		def cWeather = getWeatherFeature("hourly", state?.wZipCode)
+		def cWeather = getTwcAlertDetail(state?.wZipCode)
 		def cWeatherCondition = cWeather?.hourly_forecast[0]?.condition
 		def cWeatherPrecipitation = cWeather?.hourly_forecast[0]?.pop + " percent"
 		def cWeatherWind = cWeather?.hourly_forecast[0]?.wspd?.english + " miles per hour"
@@ -2346,26 +2352,26 @@ def mGetWeatherElements(element) {
 	def result ="Current weather is not available at the moment, please try again later"
    	try {
 		//hourly updates
-		def cWeather = getWeatherFeature("hourly", state?.wZipCode)
+		def cWeather = getTwcConditions(state?.wZipCode)
 		def cWeatherCondition = cWeather?.hourly_forecast[0]?.condition
 		def cWeatherPrecipitation = cWeather?.hourly_forecast[0]?.pop + " percent"
 		def cWeatherWind = cWeather?.hourly_forecast[0]?.wspd?.english + " miles per hour"
 		def cWeatherHum = cWeather?.hourly_forecast[0]?.humidity + " percent"
 		def cWeatherUpdate = cWeather?.hourly_forecast[0]?.FCTTIME?.civil //forecast last updated time E.G "11:00 AM",
 		//current conditions
-		def condWeather = getWeatherFeature("conditions", state?.wZipCode)
+		def condWeather = getTwcConditions(state?.wZipCode)
 		def condTodayUV = condWeather?.current_observation?.UV
   		def currentT = condWeather?.current_observation?.temp_f
 			int currentNow = currentT
 		//forecast
-		def forecastT = getWeatherFeature("forecast", state?.wZipCode)
+		def forecastT = getTwcForecast(state?.wZipCode)
 		def fToday = forecastT?.forecast?.simpleforecast?.forecastday[0]
 		def high = fToday?.high?.fahrenheit?.toInteger()
 	   		int highNow = high
 		def low = fToday?.low?.fahrenheit?.toInteger()
 			int lowNow = low
 		//sunset, sunrise, moon, tide
-		def s = getWeatherFeature("astronomy", state?.wZipCode)
+		def s = getTwcConditions(state?.wZipCode)
 		def sunriseHour = s?.moon_phase?.sunrise?.hour
 		def sunriseTime = s?.moon_phase?.sunrise?.minute
 		def sunrise = sunriseHour + ":" + sunriseTime
@@ -2408,23 +2414,35 @@ def mGetWeatherElements(element) {
 /***********************************************************************************************************************
 	WEATHER TEMPS
 ***********************************************************************************************************************/
+private get(feature) {
+log.warn "Attempting to get the $feature"
+	def result = getTwcForecast(state?.wZipCode)
+	return result
+}
+
 def private mGetWeatherVar(var) {
 	state.pTryAgain = false
 	def result
 	try {
-		def weather = getWeatherFeature("forecast", state?.wZipCode)
-		def sTodayWeather = weather?.forecast?.simpleforecast?.forecastday[0]
-		if (var =="high") { result = sTodayWeather?.high?.fahrenheit }
-		if (var == "low") { result = sTodayWeather?.low?.fahrenheit }
-		if (var =="today") { result = 	weather?.forecast?.txt_forecast?.forecastday[0]?.fcttext }
-		if (var =="tonight") { result = weather?.forecast?.txt_forecast?.forecastday[1]?.fcttext }
-		if (var =="tomorrow") { result = weather?.forecast?.txt_forecast?.forecastday[2]?.fcttext }
+    	def alerts = getTwcAlertDetail(state?.wZipCode)
+		def weather = getTwcForecast(state?.wZipCode) 
+        def dailyForecast = weather.narrative
+        def forecast = weather.narrative
+        def highTemp = weather.temperatureMax[1]
+        def lowTemp = weather.temperatureMin[1]
+        
+        if (var =="high") { result = highTemp}
+		if (var == "low") { result = lowTemp }
+		if (var =="today") { result = dailyForecast[0] } 
+		if (var =="tonight") { result = dailyForecast[0] }
+		if (var =="tomorrow") { result = weather.narrative[1] }
 
 		if (getMetric() == true) {
 			if (var =="high") { result = weather?.forecast?.simpleforecast?.forecastday[0]?.high?.celsius }
 			if (var == "low") { result = weather?.forecast?.simpleforecast?.forecastday[0]?.low?.celsius }
 			if (var =="today") { result = 	weather?.forecast?.txt_forecast?.forecastday[0]?.fcttext_metric }
-			if (var =="tonight") { result = weather?.forecast?.txt_forecast?.forecastday[1]?.fcttext_metric }
+			if (var =="tonight") { result = "this is the weather"
+            	log.warn "the tonight variable is $forecast" } //{ result = weather?.forecast?.txt_forecast?.forecastday[1]?.fcttext_metric }
 			if (var =="tomorrow") { result = weather?.forecast?.txt_forecast?.forecastday[2]?.fcttext_metric }
 			result = result?.toString()
 			result = result?.replaceAll(/([0-9]+)C/,'$1 degrees')

@@ -13,6 +13,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
+ *	12/02/2018		Version:1.0 R.0.0.8		Bug fix in Thermostats resetting status
  *	10/21/2018		Version:1.0 R.0.0.7		Auto off operations performed when last window closed instead of when fan turns off.
  *	10/15/2018		Version:1.0 R.0.0.6		Safety Check required whenever fan turns on. Disclaimer requirement added. Code Cleanup
  *	10/13/2018		Version:1.0 R.0.0.5		Bug fixes - messages played with every window open/close
@@ -37,6 +38,7 @@ preferences {
     page name: "condPage"
     page name: "actionsPage"
     page name: "settingsPage"
+    page name: "remindPage"
     page name: "onPage"
     page name: "offPage"
     page name: "condFailPage"
@@ -50,27 +52,30 @@ def mainPage() {
     dynamicPage(name: "mainPage", title:"", install: true, uninstall: false) {
         section ("Primary Fan") {
             input "priFan", "capability.switch", title: "Select your Whole House Fan", multiple: false, required: false, submitOnChange: true,
-            image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Fan.jpg"
+                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Fan.jpg"
         }
         if (priFan) {
-        	section ("Settings") {
-            	href "settingsPage", title: "App and Safety Settings", description: settingsPageComplete(), state: settingsPageSettings(),
-            	image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Safety.jpg"
-        	}
+            section ("Settings") {
+                href "settingsPage", title: "App and Safety Settings", description: settingsPageComplete(), state: settingsPageSettings(),
+                    image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Safety.jpg"
+            }
         }    
         if (dontBlameMe==true) {
+        	section ("Reminder") {
+            	href "remindPage", title: "Lets you know the conditions are right for opening the house"//, description: remindPageComplete(), state: remindPageSettings()
+                }
             section ("Conditions") {
                 href "condPage", title: "Verify these Conditions have been met (only when fan is turned on)", description: condPageComplete(), state: condPageSettings(),
-                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Yellow%20Light.png"
+                    image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Yellow%20Light.png"
             }
             section ("Conditions Met Actions") {
                 href "actionsPage", title: "Perform these actions when all conditions are met", description: actionsPageComplete(), state: actionsPageSettings(),
-                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Green%20Light.png"
+                    image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Green%20Light.png"
             }
-        section ("Conditions Failure Actions") {
-            href "condFailPage", title: "Send messages when the conditions have failed", description: condFailPageComplete(), state: condFailPageSettings(),
-            image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Red%20Lights.png"
-        	}
+            section ("Conditions Failure Actions") {
+                href "condFailPage", title: "Send messages when the conditions have failed", description: condFailPageComplete(), state: condFailPageSettings(),
+                    image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Red%20Lights.png"
+            }
         }        
     }    
 }
@@ -82,15 +87,52 @@ def actionsPage() {
     dynamicPage(name: "actionsPage", title: "Configure Actions",install: false, uninstall: false) {
         section ("Actions when Fan turns On") {
             href "onPage", title: "Perform these actions when fan is turned on", description: actionsOnPageComplete(), state: actionsOnPageSettings(),
-            image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Start.png"
+                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Start.png"
         }
         section ("Actions when Fan turns Off") {
             href "offPage", title: "Perform these actions when all windows have been closed", description: actionsOffPageComplete(), state: actionsOffPageSettings(),
-            image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Stop.png"
+                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Stop.png"
         }
     }
 }    
-		
+
+/******************************************************************************
+	REMINDER PAGE
+******************************************************************************/
+def remindPage() {
+	dynamicPage(name: "remindPage", title: "Configure the reminder and outside conditions", install: false, uninstall: false) {
+    	section ("Run a conditions check by turning on the following switch") {
+        	input "mySwitch", "capability.switch", title: "Switches", required: false, multiple: false, submitOnChange: true
+            }
+        section ("House Fan Auto-off") {
+        	input "overRide", "bool", title: "Enable to override the auto-off feature when outside conditions are not met. This allows the fan to run anytime.", defaultValue: false, submitOnChange:true
+            }
+        section ("Outside Conditions") {
+            input "rHumidity", "capability.relativeHumidityMeasurement", title: "Relative Humidity", required: false, submitOnChange: true
+            if (rHumidity) input "rHumidityLevel", "enum", title: "Only when the Humidity is...", options: ["above", "below"], required: false, submitOnChange: true            
+            if (rHumidityLevel) {
+            if (rHumidityLevel) input "rHumidityPercent", "number", title: "this level...", required: false, description: "percent", submitOnChange: true            
+            if (rHumidityPercent) input "rHumidityStop", "number", title: "...but not ${rHumidityLevel} this percentage", required: false, description: "humidity"
+            }
+            input "rTemperature", "capability.temperatureMeasurement", title: "Temperature", required: false, multiple: true, submitOnChange: true
+            if (rTemperature) input "rTemperatureLevel", "enum", title: "When the temperature is...", options: ["above", "below"], required: false, submitOnChange: true
+            if (rTemperatureLevel) input "rTemperatureDegrees", "number", title: "Temperature...", required: true, description: "degrees", submitOnChange: true
+            if (rTemperatureDegrees) input "rTemperatureStop", "number", title: "...but not ${rTemperatureLevel} this temperature", required: false, description: "degrees"
+			}
+        section ("Restrictions") {
+        	input "rMode", "mode", title: "Location Mode is...", multiple: true, required: false, submitOnChange: true
+            input "rMinWinOpen", "number", title: "only if there are less than this number of windows open"
+            }
+        section ("Reminder Message") {
+        	input "smc", "bool", title: "Send a reminder message when the above conditions are met", defaultValue: false, submitOnChange: true
+            input "remMsg", "text", title: "Send this message when the conditions have not been met", required: false, submitOnChange: true
+            input "msgTime", "number", title: "This message will only be sent once every xx hours", required: false, defaultValue: 4
+            def tts = remMsg
+            }
+        }
+    }
+
+
 /******************************************************************************
 	SETTINGS PAGE
 ******************************************************************************/
@@ -98,19 +140,19 @@ def settingsPage() {
     dynamicPage(name: "settingsPage", title: "Configure App Settings",install: false, uninstall: true) {
         section ("App Settings") {
             input "logs", "bool", title: "Show logs in the IDE Live Logging", defaultValue: false, submitOnChange: true,
-            image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Log.png"
+                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Log.png"
         }
         section ("Auto On Mode") {
-        	input "auto", "bool", title: "Turn on/off your fan simply by opening/closing windows",defaultValue: false, submitOnChange: true,
-            image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Auto.png"
-            }
+            input "auto", "bool", title: "Turn on/off your fan simply by opening/closing windows",defaultValue: false, submitOnChange: true,
+                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Auto.png"
+        }
         section ("Safety") {
             input "safety", "bool", title: "Do you have a gas furnace, water heater, or other pilot flame device?", defaultValue: false, submitOnChange: true,
-            image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Warn.png"
+                image: "https://raw.githubusercontent.com/BamaRayne/HouseFanController/icons/Warn.png"
         }
         if (safety) {
-        	section ("Safety Acknowledgement") {
-            	paragraph "You have indicated that you have gas appliances in your home. \n" +
+            section ("Safety Acknowledgement") {
+                paragraph "You have indicated that you have gas appliances in your home. \n" +
                     "Most home gas appliances have a pilot light and exhuast through a plume " +
                     "to the outside. If there is not adequate ventilation for your whole house fan, it can " +
                     "potentially cause an exhaust backflow situation in which CO2 is pulled into your home. " +
@@ -118,23 +160,23 @@ def settingsPage() {
                     "ventilation the fan will be turned off. 2) You must select windows and a minimum amount of open " +
                     "windows required. 3) When the minimum number of open windows is no longer met due to windows being " +
                     "closed, the fan will be turned off. 4) House Fan Controller defaults to a minimum of One Open Window " 
-            		}
-        		}        
+            }
+        }        
         section ("Disclaimer") {
-        	paragraph "You must read the following for the app to be operational"
-            	input "dontBlameMe", "bool", title: "Disclaimer Acknowledgement", defaultValue: false, submitOnChange: true
+            paragraph "You must read the following for the app to be operational"
+            input "dontBlameMe", "bool", title: "Disclaimer Acknowledgement", defaultValue: false, submitOnChange: true
         }
         if (dontBlameMe) {
             section ("Disclaimer") {
-                    paragraph "**** IT IS THE OWNERS RESPONSIBILITY TO SAFELY OPERATE APPLIANCES WITHIN YOUR HOME. THE AUTHOR " +
+                paragraph "**** IT IS THE OWNERS RESPONSIBILITY TO SAFELY OPERATE APPLIANCES WITHIN YOUR HOME. THE AUTHOR " +
                     "OF THIS PROGRAM CAN NOT BE HELD RESPONSIBLE FOR YOUR ACTIONS. YOUR USE OF THIS APPLICATION IS YOUR " +
                     "ACKNOWLEDGEMENT THAT YOU WILL NOT HOLD THE PROGRAM AUTHOR ACCOUNTABLE AND THAT YOU HAVE READ THESE WARNINGS.*** " +
                     " \n" +
                     " \n" 
-                    }
-                }    
-    		}   
-		}  
+            }
+        }    
+    }   
+}  
 
 /******************************************************************************
 	CONDITIONS CONFIGURATION PAGE
@@ -142,9 +184,9 @@ def settingsPage() {
 def condPage() {
     dynamicPage(name: "condPage", title: "The conditions must be met before the fan will turn on",install: false, uninstall: false) {
         section ("Ventilation Requirements") {
-        	input "minWinOpen", "text", title: "Minimum # of Windows required to be open for fan to be on."
+            input "minWinOpen", "text", title: "Minimum # of Windows required to be open for fan to be on."
             input "minWinClose", "text", title: "Minimum # of Windows required to be open to keep fan on."
-        	}
+        }
         section ("Windows") {
             input "cContactWindow", "capability.contactSensor", title: "Contact Sensors only on Windows", multiple: true, required: false, submitOnChange: true
             if (cContactWindow) {
@@ -207,11 +249,11 @@ def condFailPage() {
     dynamicPage(name: "condFailPage", title: "Perform these actions when conditions have not been met.", install: false, uninstall: false) {
         section ("Conditions Fail Alert Message") {
             input "failMsg", "text", title: "Send this message when the conditions have not been met", required: false, submitOnChange: true
-        	def msg = failMsg
+            def msg = failMsg
         }
         section("Send Messages to Smart Message Controller") {
             input "smc", "bool", title: "Send audio messages to the Smart Message Controller App", defaultValue: true, submitOnChange: true
-            }
+        }
         section ("Send Message to SMS and Push") {
             input "sendText", "bool", title: "Enable Text Notifications", required: false, submitOnChange: true     
             if (sendText){      
@@ -229,71 +271,71 @@ def condFailPage() {
 def onPage() {
     dynamicPage(name: "onPage", title: "Perform these actions when the whole house fan is turned on.", install: false, uninstall: false) {
         section ("Fans (non-adjustable)") {
-                input "aFans", "capability.switch", title: "These Fans...", multiple: true, required: false, submitOnChange: true
-                if (aFans) {
-                    input "aFansCmd", "enum", title: "...will...", options:["on":"turn on","off":"turn off"], multiple: false, required: false, submitOnChange:true
-                    if (aFansCmd=="on") {
-                        input "aFansDelayOn", "number", title: "Delay turning on by this many seconds", defaultValue: 0, submitOnChange:true
-                        if (aFansDelayOn) input "aFansPendOn", "bool", title: "Activate for pending state change cancellation", required: false, default: false
-                    }
-                    if (aFansCmd=="off") {
-                        input "aFansDelayOff", "number", title: "Delay turning off by this many seconds", defaultValue: 0, submitOnChange:true
-                        if (aFansDelayOff) input "aFansPendOff", "bool", title: "Activate for pending state change cancellation", required: false, default: false
-                    	}
-                    }
+            input "aFans", "capability.switch", title: "These Fans...", multiple: true, required: false, submitOnChange: true
+            if (aFans) {
+                input "aFansCmd", "enum", title: "...will...", options:["on":"turn on","off":"turn off"], multiple: false, required: false, submitOnChange:true
+                if (aFansCmd=="on") {
+                    input "aFansDelayOn", "number", title: "Delay turning on by this many seconds", defaultValue: 0, submitOnChange:true
+                    if (aFansDelayOn) input "aFansPendOn", "bool", title: "Activate for pending state change cancellation", required: false, default: false
                 }
-            section ("Ceiling Fans (adjustable)") {
-                input "aCeilingFans", "capability.switchLevel", title: "These ceiling fans...", multiple: true, required: false, submitOnChange: true
-                if (aCeilingFans) {
-                    input "aCeilingFansCmd", "enum", title: "...will...", options:["on":"turn on","off":"turn off","low":"set to low","med":"set to med","high":"set to high","incr":"speed up","decr":"slow down"], multiple: false, required: false, submitOnChange:true
-                    if (aCeilingFansCmd == "incr") {
-                        input "aCeilingFansIncr", "number", title: "...by this percentage", required: true, submitOnChange: true
-                    }
-                    if (aCeilingFansCmd == "decr") {
-                        input "aCeilingFansDecr", "number", title: "...by this percentage", required: true, submitOnChange: true
-                    }
-                }
-            }
-        	section ("Thermostats") {
-                input "cTstat", "capability.thermostat", title: "...and these thermostats will...", multiple: true, required: false, submitOnChange:true
-                if (cTstat) {
-                    input "cTstatFan", "enum", title: "...set the fan mode to...", options:["auto":"auto","on":"on","off":"off","circ":"circulate"], multiple: false, required: false, submitOnChange:true
-                    input "cTstatMode", "enum", title: "...set the operating mode to...", options:["cool":"cooling","heat":"heating","auto":"auto","on":"on","off":"off","incr":"increase","decr":"decrease"], multiple: false, required: false, submitOnChange:true
-                    if (cTstatMode in ["cool","auto"]) { input "coolLvl", "number", title: "Cool Setpoint", required: true, submitOnChange: true}
-                    if (cTstatMode in ["heat","auto"]) { input "heatLvl", "number", title: "Heat Setpoint", required: true, submitOnChange: true}
-                    if (cTstatMode in ["incr","decr"]) {
-                        if (cTstatMode == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
-                        if (cTstatMode == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
-                        input "tempChange", "number", title: "By this amount...", required: true, submitOnChange: true }
-                }}
-            section("More Thermostats") {
-                    input "cTstat1", "capability.thermostat", title: "More Thermostat(s)...", multiple: true, required: false, submitOnChange:true
-                    if (cTstat1) {
-                        input "cTstat1Fan", "enum", title: "Fan Mode", options:["auto":"Auto","on":"On","off":"Off","circ":"Circulate"],multiple: false, required: false, submitOnChange:true
-                        input "cTstat1Mode", "enum", title: "Operating Mode", options:["cool":"Cool","heat":"Heat","auto":"Auto","on":"On","off":"Off","incr":"Increase","decr":"Decrease"],multiple: false, required: false, submitOnChange:true
-                        if (cTstat1Mode in ["cool","auto"]) { input "coolLvl1", "number", title: "Cool Setpoint", required: true, submitOnChange: true }
-                        if (cTstat1Mode in ["heat","auto"]) { input "heatLvl1", "number", title: "Heat Setpoint", required: true, submitOnChange: true }
-                        if (cTstat1Mode in ["incr","decr"]) {
-                            if (cTstat1Mode == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
-                            if (cTstat1Mode == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
-                            input "tempChange1", "number", title: "By this amount...", required: true, submitOnChange: true }
-                    }
-                }
-            section ("Vents") {
-                input "aVents", "capability.switchLevel", title: "These vents...", multiple: true, required: false, submitOnChange: true
-                if (aVents) {
-                    input "aVentsCmd", "enum", title: "...will...",
-                        options:["on":"open","off":"close","25":"change to 25% open","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
-                }
-            }
-            section ("Shades"){
-                input "aShades", "capability.windowShade", title: "These window coverings...", multiple: true, required: false, submitOnChange: true
-                if (aShades) {
-                    input "aShadesCmd", "enum", title: "...will...", options:["on":"open","off":"close","25":"change to 25% oetn","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
+                if (aFansCmd=="off") {
+                    input "aFansDelayOff", "number", title: "Delay turning off by this many seconds", defaultValue: 0, submitOnChange:true
+                    if (aFansDelayOff) input "aFansPendOff", "bool", title: "Activate for pending state change cancellation", required: false, default: false
                 }
             }
         }
+        section ("Ceiling Fans (adjustable)") {
+            input "aCeilingFans", "capability.switchLevel", title: "These ceiling fans...", multiple: true, required: false, submitOnChange: true
+            if (aCeilingFans) {
+                input "aCeilingFansCmd", "enum", title: "...will...", options:["on":"turn on","off":"turn off","low":"set to low","med":"set to med","high":"set to high","incr":"speed up","decr":"slow down"], multiple: false, required: false, submitOnChange:true
+                if (aCeilingFansCmd == "incr") {
+                    input "aCeilingFansIncr", "number", title: "...by this percentage", required: true, submitOnChange: true
+                }
+                if (aCeilingFansCmd == "decr") {
+                    input "aCeilingFansDecr", "number", title: "...by this percentage", required: true, submitOnChange: true
+                }
+            }
+        }
+        section ("Thermostats") {
+            input "cTstat", "capability.thermostat", title: "...and these thermostats will...", multiple: true, required: false, submitOnChange:true
+            if (cTstat) {
+                input "cTstatFan", "enum", title: "...set the fan mode to...", options:["auto":"auto","on":"on","off":"off","circ":"circulate"], multiple: false, required: false, submitOnChange:true
+                input "cTstatMode", "enum", title: "...set the operating mode to...", options:["cool":"cooling","heat":"heating","auto":"auto","on":"on","off":"off","incr":"increase","decr":"decrease"], multiple: false, required: false, submitOnChange:true
+                if (cTstatMode in ["cool","auto"]) { input "coolLvl", "number", title: "Cool Setpoint", required: true, submitOnChange: true}
+                if (cTstatMode in ["heat","auto"]) { input "heatLvl", "number", title: "Heat Setpoint", required: true, submitOnChange: true}
+                if (cTstatMode in ["incr","decr"]) {
+                    if (cTstatMode == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
+                    if (cTstatMode == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
+                    input "tempChange", "number", title: "By this amount...", required: true, submitOnChange: true }
+            }}
+        section("More Thermostats") {
+            input "cTstat1", "capability.thermostat", title: "More Thermostat(s)...", multiple: true, required: false, submitOnChange:true
+            if (cTstat1) {
+                input "cTstat1Fan", "enum", title: "Fan Mode", options:["auto":"Auto","on":"On","off":"Off","circ":"Circulate"],multiple: false, required: false, submitOnChange:true
+                input "cTstat1Mode", "enum", title: "Operating Mode", options:["cool":"Cool","heat":"Heat","auto":"Auto","on":"On","off":"Off","incr":"Increase","decr":"Decrease"],multiple: false, required: false, submitOnChange:true
+                if (cTstat1Mode in ["cool","auto"]) { input "coolLvl1", "number", title: "Cool Setpoint", required: true, submitOnChange: true }
+                if (cTstat1Mode in ["heat","auto"]) { input "heatLvl1", "number", title: "Heat Setpoint", required: true, submitOnChange: true }
+                if (cTstat1Mode in ["incr","decr"]) {
+                    if (cTstat1Mode == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
+                    if (cTstat1Mode == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
+                    input "tempChange1", "number", title: "By this amount...", required: true, submitOnChange: true }
+            }
+        }
+        section ("Vents") {
+            input "aVents", "capability.switchLevel", title: "These vents...", multiple: true, required: false, submitOnChange: true
+            if (aVents) {
+                input "aVentsCmd", "enum", title: "...will...",
+                    options:["on":"open","off":"close","25":"change to 25% open","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
+            }
+        }
+        section ("Shades"){
+            input "aShades", "capability.windowShade", title: "These window coverings...", multiple: true, required: false, submitOnChange: true
+            if (aShades) {
+                input "aShadesCmd", "enum", title: "...will...", options:["on":"open","off":"close","25":"change to 25% oetn","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
+            }
+        }
     }
+}
     
 /***********************************************************************************************************
    ACTIONS OFF PAGE
@@ -312,106 +354,106 @@ def offPage() {
                 input "aOtherSwitchesCmd2Off", "enum", title: "...will turn...", options: ["on":"on","off":"off","toggle":"toggle"], multiple: false, required: false, submitOnChange: true
             }
         }
-    	section ("Dimmers - Selection") {    
-        	input "aDimOff", "capability.switchLevel", title: "Dimmable Lights and Switches", multiple: true, required: false , submitOnChange:true
-        	if (aDimOff) {
-            	input "aDimCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off","set":"set the level","decrease":"decrease","increase":"increase"], multiple: false, required: false, submitOnChange: true
-            if (aDimCmdOff=="decrease") {
-                input "aDimDecreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+        section ("Dimmers - Selection") {    
+            input "aDimOff", "capability.switchLevel", title: "Dimmable Lights and Switches", multiple: true, required: false , submitOnChange:true
+            if (aDimOff) {
+                input "aDimCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off","set":"set the level","decrease":"decrease","increase":"increase"], multiple: false, required: false, submitOnChange: true
+                if (aDimCmdOff=="decrease") {
+                    input "aDimDecreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+                }
+                if (aDimCmdOff == "increase") {
+                    input "aDimIncreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+                }
+                if (aDimCmdOff == "set") {
+                    input "aDimLVLOff", "number", title: "...of the lights to...", description: "this percentage", range: "0..100", required: false, submitOnChange: true
+                }
+                input "aDimDelayOff", "number", title: "Delay this action by this many seconds.", required: false, defaultValue: 0, submitOnChange: true
             }
-            if (aDimCmdOff == "increase") {
-                input "aDimIncreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+        }    
+        section("More Dimmers - Selection") {
+            input "aOtherDimOff", "capability.switchLevel", title: "More Dimmers", multiple: true, required: false , submitOnChange:true
+            if (aOtherDimOff) {
+                input "aOtherDimCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off","set":"set the level","decrease":"decrease","increase":"brighten"], multiple: false, required: false, submitOnChange:true
+                if (aOtherDimCmdOff=="decrease") {
+                    input "aOtherDimDecreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+                }
+                if (aOtherDimCmdOff == "increase") {
+                    input "aOtherDimIncreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+                }
+                if (aOtherDimCmdOff == "set") {
+                    input "aOtherDimLVLOff", "number", title: "...of the lights to...", description: "this percentage", range: "0..100", required: false, submitOnChange: true
+                }
+                input "otherDimDelayOff", "number", title: "Delay this action by this many seconds.", required: false, defaultValue: 0, submitOnChange: true
             }
-            if (aDimCmdOff == "set") {
-                input "aDimLVLOff", "number", title: "...of the lights to...", description: "this percentage", range: "0..100", required: false, submitOnChange: true
-            }
-            input "aDimDelayOff", "number", title: "Delay this action by this many seconds.", required: false, defaultValue: 0, submitOnChange: true
         }
-    }    
-    section("More Dimmers - Selection") {
-        input "aOtherDimOff", "capability.switchLevel", title: "More Dimmers", multiple: true, required: false , submitOnChange:true
-        if (aOtherDimOff) {
-            input "aOtherDimCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off","set":"set the level","decrease":"decrease","increase":"brighten"], multiple: false, required: false, submitOnChange:true
-            if (aOtherDimCmdOff=="decrease") {
-                input "aOtherDimDecreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+        section ("Fans connected to switches") {
+            input "aFansOff", "capability.switch", title: "These Fans...", multiple: true, required: false, submitOnChange: true
+            if (aFansOff) {
+                input "aFansCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off"], multiple: false, required: false, submitOnChange:true
+                if (aFansCmdOff=="on") {
+                    input "aFansDelayOnOff", "number", title: "Delay turning on by this many seconds", defaultValue: 0, submitOnChange:true
+                    //           if (aFansDelayOnOff) input "aFansPendOnOff", "bool", title: "Activate for pending state change cancellation", required: false, default: false
+                }
+                if (aFansCmdOff=="off") {
+                    input "aFansDelayOffOff", "number", title: "Delay turning off by this many seconds", defaultValue: 0, submitOnChange:true
+                    //           if (aFansDelayOffOff) input "aFansPendOffOff", "bool", title: "Activate for pending state change cancellation", required: false, default: false
+                }
             }
-            if (aOtherDimCmdOff == "increase") {
-                input "aOtherDimIncreaseOff", "number", title: "the lights by this %", required: false, submitOnChange: true
+        }
+        section ("Fans and Ceiling Fan Settings (adjustable)") {
+            input "aCeilingFansOff", "capability.switchLevel", title: "These ceiling fans...", multiple: true, required: false, submitOnChange: true
+            if (aCeilingFansOff) {
+                input "aCeilingFansCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off","low":"set to low","med":"set to med","high":"set to high","incr":"speed up","decr":"slow down"], multiple: false, required: false, submitOnChange:true
+                if (aCeilingFansCmdOff == "incr") {
+                    input "aCeilingFansIncrOff", "number", title: "...by this percentage", required: true, submitOnChange: true
+                }
+                if (aCeilingFansCmdOff == "decr") {
+                    input "aCeilingFansDecrOff", "number", title: "...by this percentage", required: true, submitOnChange: true
+                }
             }
-            if (aOtherDimCmdOff == "set") {
-                input "aOtherDimLVLOff", "number", title: "...of the lights to...", description: "this percentage", range: "0..100", required: false, submitOnChange: true
+        }
+        section ("Thermostat") {
+            input "cTstatOff", "capability.thermostat", title: "...and these thermostats will...", multiple: true, required: false, submitOnChange:true
+            if (cTstatOff) {
+                input "cTstatFanOff", "enum", title: "...set the fan mode to...", options:["auto":"auto","on":"on","off":"off","circ":"circulate"], multiple: false, required: false, submitOnChange:true
+                input "cTstatModeOff", "enum", title: "...set the operating mode to...", options:["cool":"cooling","heat":"heating","auto":"auto","on":"on","off":"off","incr":"increase","decr":"decrease"], multiple: false, required: false, submitOnChange:true
+                if (cTstatModeOff in ["cool","auto"]) { input "coolLvl", "number", title: "Cool Setpoint", required: true, submitOnChange: true}
+                if (cTstatModeOff in ["heat","auto"]) { input "heatLvl", "number", title: "Heat Setpoint", required: true, submitOnChange: true}
+                if (cTstatModeOff in ["incr","decr"]) {
+                    if (cTstatModeOff == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
+                    if (cTstatModeOff == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
+                    input "tempChangeOff", "number", title: "By this amount...", required: true, submitOnChange: true }
             }
-            input "otherDimDelayOff", "number", title: "Delay this action by this many seconds.", required: false, defaultValue: 0, submitOnChange: true
+        }
+        if(cTstatOff) {
+            section("ThermostatsOff") {
+                input "cTstat1Off", "capability.thermostat", title: "More Thermostat(s)...", multiple: true, required: false, submitOnChange:true
+                if (cTstat1Off) {
+                    input "cTstat1FanOff", "enum", title: "Fan Mode", options:["auto":"Auto","on":"On","off":"Off","circ":"Circulate"],multiple: false, required: false, submitOnChange:true
+                    input "cTstat1ModeOff", "enum", title: "Operating Mode", options:["cool":"Cool","heat":"Heat","auto":"Auto","on":"On","off":"Off","incr":"Increase","decr":"Decrease"],multiple: false, required: false, submitOnChange:true
+                    if (cTstat1ModeOff in ["cool","auto"]) { input "coolLvl1", "number", title: "Cool Setpoint", required: true, submitOnChange: true }
+                    if (cTstat1ModeOff in ["heat","auto"]) { input "heatLvl1", "number", title: "Heat Setpoint", required: true, submitOnChange: true }
+                    if (cTstat1ModeOff in ["incr","decr"]) {
+                        if (cTstat1ModeOff == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
+                        if (cTstat1ModeOff == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
+                        input "tempChange1Off", "number", title: "By this amount...", required: true, submitOnChange: true }
+                }
+            }
+        }
+        section ("Vents") {
+            input "aVentsOff", "capability.switchLevel", title: "These vents...", multiple: true, required: false, submitOnChange: true
+            if (aVentsOff) {
+                input "aVentsCmdOff", "enum", title: "...will...",
+                    options:["on":"open","off":"close","25":"change to 25% open","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
+            }
+        }
+        section ("Shades"){
+            input "aShadesOff", "capability.windowShade", title: "These window coverings...", multiple: true, required: false, submitOnChange: true
+            if (aShadesOff) {
+                input "aShadesCmdOff", "enum", title: "...will...", options:["on":"open","off":"close","25":"change to 25% oetn","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
+            }
         }
     }
-    section ("Fans connected to switches") {
-        input "aFansOff", "capability.switch", title: "These Fans...", multiple: true, required: false, submitOnChange: true
-        if (aFansOff) {
-            input "aFansCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off"], multiple: false, required: false, submitOnChange:true
-            if (aFansCmdOff=="on") {
-                input "aFansDelayOnOff", "number", title: "Delay turning on by this many seconds", defaultValue: 0, submitOnChange:true
-                //           if (aFansDelayOnOff) input "aFansPendOnOff", "bool", title: "Activate for pending state change cancellation", required: false, default: false
-            }
-            if (aFansCmdOff=="off") {
-                input "aFansDelayOffOff", "number", title: "Delay turning off by this many seconds", defaultValue: 0, submitOnChange:true
-                //           if (aFansDelayOffOff) input "aFansPendOffOff", "bool", title: "Activate for pending state change cancellation", required: false, default: false
-            }
-        }
-    }
-    section ("Fans and Ceiling Fan Settings (adjustable)") {
-        input "aCeilingFansOff", "capability.switchLevel", title: "These ceiling fans...", multiple: true, required: false, submitOnChange: true
-        if (aCeilingFansOff) {
-            input "aCeilingFansCmdOff", "enum", title: "...will...", options:["on":"turn on","off":"turn off","low":"set to low","med":"set to med","high":"set to high","incr":"speed up","decr":"slow down"], multiple: false, required: false, submitOnChange:true
-            if (aCeilingFansCmdOff == "incr") {
-                input "aCeilingFansIncrOff", "number", title: "...by this percentage", required: true, submitOnChange: true
-            }
-            if (aCeilingFansCmdOff == "decr") {
-                input "aCeilingFansDecrOff", "number", title: "...by this percentage", required: true, submitOnChange: true
-            }
-        }
-    }
-    section ("Thermostat") {
-        input "cTstatOff", "capability.thermostat", title: "...and these thermostats will...", multiple: true, required: false, submitOnChange:true
-        if (cTstatOff) {
-            input "cTstatFanOff", "enum", title: "...set the fan mode to...", options:["auto":"auto","on":"on","off":"off","circ":"circulate"], multiple: false, required: false, submitOnChange:true
-            input "cTstatModeOff", "enum", title: "...set the operating mode to...", options:["cool":"cooling","heat":"heating","auto":"auto","on":"on","off":"off","incr":"increase","decr":"decrease"], multiple: false, required: false, submitOnChange:true
-            if (cTstatModeOff in ["cool","auto"]) { input "coolLvl", "number", title: "Cool Setpoint", required: true, submitOnChange: true}
-            if (cTstatModeOff in ["heat","auto"]) { input "heatLvl", "number", title: "Heat Setpoint", required: true, submitOnChange: true}
-            if (cTstatModeOff in ["incr","decr"]) {
-                if (cTstatModeOff == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
-                if (cTstatModeOff == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
-                input "tempChangeOff", "number", title: "By this amount...", required: true, submitOnChange: true }
-        }
-    }
-    if(cTstatOff) {
-        section("ThermostatsOff") {
-            input "cTstat1Off", "capability.thermostat", title: "More Thermostat(s)...", multiple: true, required: false, submitOnChange:true
-            if (cTstat1Off) {
-                input "cTstat1FanOff", "enum", title: "Fan Mode", options:["auto":"Auto","on":"On","off":"Off","circ":"Circulate"],multiple: false, required: false, submitOnChange:true
-                input "cTstat1ModeOff", "enum", title: "Operating Mode", options:["cool":"Cool","heat":"Heat","auto":"Auto","on":"On","off":"Off","incr":"Increase","decr":"Decrease"],multiple: false, required: false, submitOnChange:true
-                if (cTstat1ModeOff in ["cool","auto"]) { input "coolLvl1", "number", title: "Cool Setpoint", required: true, submitOnChange: true }
-                if (cTstat1ModeOff in ["heat","auto"]) { input "heatLvl1", "number", title: "Heat Setpoint", required: true, submitOnChange: true }
-                if (cTstat1ModeOff in ["incr","decr"]) {
-                    if (cTstat1ModeOff == "decr") {paragraph "NOTE: This will decrease the temp from the current room temp minus what you choose."}
-                    if (cTstat1ModeOff == "incr") {paragraph "NOTE: This will increase the temp from the current room temp plus what you choose."}
-                    input "tempChange1Off", "number", title: "By this amount...", required: true, submitOnChange: true }
-            }
-        }
-    }
-    section ("Vents") {
-        input "aVentsOff", "capability.switchLevel", title: "These vents...", multiple: true, required: false, submitOnChange: true
-        if (aVentsOff) {
-            input "aVentsCmdOff", "enum", title: "...will...",
-                options:["on":"open","off":"close","25":"change to 25% open","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
-        }
-    }
-    section ("Shades"){
-        input "aShadesOff", "capability.windowShade", title: "These window coverings...", multiple: true, required: false, submitOnChange: true
-        if (aShadesOff) {
-            input "aShadesCmdOff", "enum", title: "...will...", options:["on":"open","off":"close","25":"change to 25% oetn","50":"change to 50% open","75":"change to 75% open"], multiple: false, required: false, submitOnChange:true
-        }
-    }
-}
 }
 
 
@@ -420,25 +462,31 @@ def offPage() {
 	Base Process
 ************************************************************************************************************/
 def installed() {
-	log.debug "Installed with settings: ${settings}"
+    log.debug "Installed with settings: ${settings}"
 
-	initialize()
+    initialize()
 }
 
 def updated() {
-	log.debug "Updated with settings: ${settings}"
+    log.debug "Updated with settings: ${settings}"
 
-	unsubscribe()
-	initialize()
+    unsubscribe()
+    initialize()
 }
 
 def initialize() {
-	state.safetyCheck = false
+	state.msgTimer = true
+    state.safetyCheck = false
     state.autoMode = false
+    if(smc)					{ subscribe(rTemperature, "temperature", reminderHandler)
+    						  subscribe(rHumidity, "humidity", reminderHandler)
+                              subscribe(mySwitch, "switch.on", reminderHandler)
+                              subscribe(location, "mode", reminderHandler) }
     if(priFan)				{ subscribe(priFan, "switch.on", autoModeOn) } 
     if(priFan)				{ subscribe(priFan, "switch.off", windowsOpen) } 					
-	if(auto) 				{ subscribe(cContactWindow, "contact.open", autoModeOn) } 			
-    						  subscribe(cContactWindow, "contact.closed", autoModeOff)   		
+    if(auto) 				{ subscribe(cContactWindow, "contact.open", autoModeOn) } 			
+    subscribe(cContactWindow, "contact.closed", autoModeOff)
+    unschedule msgTimerDelay
 }
 
 /***********************************************************************************************************
@@ -448,7 +496,7 @@ def safetyCheck(evt) {
     log.warn "Performing Safety Check"
     state.safetyCheck = false
     def devList = []
-    def msg = "The $priFan is being turned off due to failing the safety check. There is not adequate ventilation available. Please open some windows and select those " +
+    def failedMsg = "The $priFan is being turned off due to failing the safety check. There is not adequate ventilation available. Please open some windows and select those " +
         "windows in the House Fan Controller app."
     if (dontBlameMe==false) {
         msg = "You have attempted to utilize the House Fan Controller app without acknowledgement of the safety precautions. Please open the app, navigate to the "+
@@ -474,18 +522,17 @@ def safetyCheck(evt) {
             }
         }
         def devListSize = devList?.size()
-        if ("${devListSize}" < "${minWinOpen}") {
-        	if (priFan == "on") {
-            safetyMethod()
-            log.warn "SafetyCheck FAILED"
-            if ("${failMsg}" == null) {
-                ttsActions(msg)
-                sendPush(msg)
-            	}
+        if (minWinOpen < devListSize) {
+        log.info "devListSize is: $devListSize & minWinOpen is: $minWinOpen"
+        if (priFan.currentValue("switch") == "on") {
+                safetyMethod()
+                log.warn "SafetyCheck FAILED due too few windows being open"
+                if (failMsg == null) {
+                    msg = failedMsg
+                    ttsActions(msg)
+                    sendPush(msg)
+                }
             }
-//            else {
-//                ttsActions(msg)
-//            }
             return state.safetyCheck
         }    
         if ("${devListSize}" >= "${minWinOpen}") {			// min windows are open == fan stays on
@@ -588,14 +635,141 @@ def autoModeOff(evt) {
                 priFan.off()
                 state.autoMode = false
                 ttsActions(msg)
-                
+
             }
         }
     }
-    if (priFan == off) {
-    	processOffActions(evt)
+    if (fanStatus == "off") {
+    	log.info "processing because the fan is now off"
+        def cContactWindowSize = cContactWindow?.size()
+        cContactWindow.each { deviceName ->
+            def status = deviceName.currentValue("contact")
+            if (status == "open"){  
+                String device  = (String) deviceName
+                devList += device
+            }
+        }
+        def devListSize = devList.size()
+        log.info "devListSize is: $devListSize"
+        if (devListSize == 0 || "${devListSize}" == null) {
+    	log.info "All windows are closed. Actions will now be performed"
+        processOffActions(evt)
+        }
     }
 }
+
+/***********************************************************************************************************
+   REMINDER HANDLER
+************************************************************************************************************/
+def reminderHandler(evt) {
+    def rHumOk = false
+    def rTempOk = false
+    def rMinWinOk = false
+    def rModeOk = false
+    def devList = []
+
+//    if (priFan.currentValue("switch") == "off" && state.msgTimer == true) {
+        // LOCATION MODE
+        if (rMode == null) { rModeOk = true }
+        if (rMode) {
+            if (rMode?.contains(location.mode)) {
+                rModeOk = true
+            }
+            else {
+                rModeOk = false
+                if (rModeOk == false) log.warn "House Fan Controller Reminder message not sent because the mode is not correct"
+            }
+        }
+
+        // WINDOWS OPEN    
+        if (cContactWindow == null) {rMinWinOk = true}
+        def cContactWindowSize = cContactWindow?.size()
+        cContactWindow.each { deviceName ->
+            def status = deviceName.currentValue("contact")
+            if ("${status}" == "open"){ 
+                String device  = (String) deviceName
+                devList += device
+            }
+            if (devList.size() <= rMinWinOpen) {
+                rMinWinOk = true
+            }
+            if (devList.size() > rMinWinOpen) {
+                rMinWinOk = false
+                log.warn "House Fan Controller Reminder message not sent because there are too many windows open"
+            }
+        }
+
+
+        // HUMIDITY
+        if (rHumidity == null) {rHumOk = true }
+        if (rHumidity) {
+            int rHumidityStopVal = rHumidityStop == null ? 0 : rHumidityStop as int
+                rHumidity.each { deviceName ->
+                    def status = deviceName.currentValue("humidity")
+                    if (rHumidityLevel == "above") {
+                        rHumidityStopVal = rHumidityStopVal == 0 ? 999 :  rHumidityStopVal as int
+                            if (status >= rHumidityPercent && status <= rHumidityStopVal) {
+                                cHumOk = true
+                            }
+                    }
+                    if (rHumidityLevel == "below") {
+                        if (status <= rHumidityPercent && status >= rHumidityStopVal) {
+                            rHumOk = true
+                        }
+                    }    
+                }
+            if (rHumOk == false) log.warn "House Fan Controller Reminder message not sent due to the Humidity being out of range"
+        }
+
+        // TEMPERATURE
+        if (rTemperature == null) {rTempOk = true }
+        if (rTemperature) {
+            int rTemperatureStopVal = rTemperatureStop == null ? 0 : rTemperatureStop as int
+                rTemperature.each { deviceName ->
+                    def status = deviceName.currentValue("temperature")
+                    if (rTemperatureLevel == "above") {
+                        rTemperatureStopVal = rTemperatureStopVal == 0 ? 999 :  rTemperatureStopVal as int
+                            if (status >= rTemperatureDegrees && status <= rTemperatureStopVal) {
+                                rTempOk = true
+                            }
+                    }
+                    if (rTemperatureLevel == "below") {
+                        if (status <= rTemperatureDegrees && status >= rTemperatureStopVal) {
+                            rTempOk = true
+                        }
+                    }    
+                }
+            if (rTempOk == false) log.warn "House Fan Controller Reminder message not sent due to the Temperature being out of range"
+        }
+        
+        if (priFan.currentValue("switch") == "off" && state.msgTimer == true) {
+        if (state.msgTimer == true) {
+            state.msgTimer = false
+            runIn(msgTime*3600, "msgTimerDelay")
+        }
+
+        if (rTempOk == true && rHumOk == true && rMinWinOk == true && rModeOk == true) {
+            state.msgTimer = false
+            if (remMsg != null) {
+                def tts = remMsg
+                sendLocationEvent(name: "SmartMessageControl", value: "House Fan Controller Reminder", isStateChange: true, descriptionText: "${tts}")
+                log.info "Message sent to Smart Message Control: Msg = $tts"
+            }
+        }
+    }
+    if (overRide==false) {
+        log.warn "The override is disabled and the fan will turn off"
+        if ((priFan.currentValue("switch") == "on") && (rTempOk == false || rHumOk == false || rMinWinOk == false || rModeOk == false)) {
+                priFan.off()
+                def tts = "The attic fan has been turned off because the conditions outside are now outside of your selected parameters"
+            }
+        }
+    }
+
+
+def msgTimerDelay() {
+	state.msgTimer = true
+    }
 
 
 /***********************************************************************************************************
@@ -1014,7 +1188,7 @@ def aFansOff(evt) {
 THERMOSTATS HANDLERS - FOR ACTIONS ON PROCESS
 ************************************************************************************************************/
 private thermostats(evt) {
-    if (logs) log.info "thermostats handler method activated"
+    if (logs) log.info "thermostats one handler method activated (fan on)"
     cTstat.each {deviceD ->
         def currentMode = deviceD.currentValue("thermostatMode")
         def currentTMP = deviceD.currentValue("temperature")
@@ -1075,27 +1249,31 @@ private thermostats(evt) {
     }
 }
 private thermostats1(evt) {
+    if (logs) log.info "thermostats two handler method activated (fan on)"
     cTstat1.each {deviceD ->
         def currentMode = deviceD.currentValue("thermostatMode")
         def currentTMP = deviceD.currentValue("temperature")
         if (cTstat1Mode == "off") { cTstat1.off()
-                                  }
+                                 }
         if (cTstat1Mode == "auto" || cTstat1Mode == "on") {
             cTstat1.auto()
-            cTstat1.setCoolingSetpoint(coolLvl1)
-            cTstat1.setHeatingSetpoint(heatLvl1)
+            cTstat1.setCoolingSetpoint(coolLvl)
+            cTstat1.setHeatingSetpoint(heatLvl)
         }
-        if (cTstat1Mode == "auto" || cTstat1Mode == "on") {
-            cTstat1.auto()
-            cTstat1.setCoolingSetpoint(coolLvl1)
-            cTstat1.setHeatingSetpoint(heatLvl1)
+        if (cTstat1Mode == "cool") {
+            cTstat1.cool()
+            cTstat1.setCoolingSetpoint(coolLvl)
+        }
+        if (cTstat1Mode == "heat") {
+            cTstat1.heat()
+            cTstat1.setHeatingSetpoint(heatLvl)
         }
         if (cTstat1Mode == "incr") {
-            def cNewSetpoint = tempChange1
-            cNewSetpoint = tempChange1 + currentTMP
+            def cNewSetpoint = tempChange
+            cNewSetpoint = tempChange + currentTMP
             cNewSetpoint = cNewSetpoint < 60 ? 60 : cNewSetpoint > 85 ? 85 : cNewSetpoint
-            def hNewSetpoint = tempChange1
-            hNewSetpoint = tempChange1 + currentTMP
+            def hNewSetpoint = tempChange
+            hNewSetpoint = tempChange + currentTMP
             hNewSetpoint = hNewSetpoint < 60 ? 60 : hNewSetpoint > 85 ? 85 : hNewSetpoint
             if (currentMode == "auto" || currentMode == "on") {
                 deviceD.setCoolingSetpoint(cNewSetpoint)
@@ -1108,12 +1286,12 @@ private thermostats1(evt) {
                 deviceD.setHeatingSetpoint(hNewSetPoint)
             }
         }
-        if (cTsta1tMode == "decr") {
-            def cNewSetpoint = tempChange1
-            cNewSetpoint = currentTMP - tempChange1
+        if (cTstat1Mode == "decr") {
+            def cNewSetpoint = tempChange
+            cNewSetpoint = currentTMP - tempChange
             cNewSetpoint = cNewSetpoint < 60 ? 60 : cNewSetpoint > 85 ? 85 : cNewSetpoint
-            def hNewSetpoint = tempChange1
-            hNewSetpoint = currentTMP - tempChange1
+            def hNewSetpoint = tempChange
+            hNewSetpoint = currentTMP - tempChange
             hNewSetpoint = hNewSetpoint < 60 ? 60 : hNewSetpoint > 85 ? 85 : hNewSetpoint
             if (currentMode == "auto" || currentMode == "on") {
                 deviceD.setCoolingSetpoint(cNewSetpoint)
@@ -1126,7 +1304,7 @@ private thermostats1(evt) {
                 deviceD.setHeatingSetpoint(hNewSetPoint)
             }
         }
-        if (cTstat1Fan == "auto" || cTstat1Fan == "off") { cTstat1.fanAuto() }
+        if (cTstat1Fan == "auto" || cTsta1tFan == "off") { cTstat1.fanAuto() }
         if (cTstat1Fan == "on") { cTstat1.fanOn() }
         if (cTstat1Fan == "circ") { cTstat1.fanCirculate() }
     }
@@ -1304,7 +1482,7 @@ def aFansOffOff(evt) {
 THERMOSTATS HANDLERS - FOR ACTIONS OFF PROCESS
 ************************************************************************************************************/
 private thermostatsOff(evt) {
-    if (logs) log.info "thermostats handler method activated"
+    if (logs) log.info "thermostats one handler method activated (fan off)"
     cTstatOff.each {deviceD ->
         def currentMode = deviceD.currentValue("thermostatMode")
         def currentTMP = deviceD.currentValue("temperature")
@@ -1365,6 +1543,7 @@ private thermostatsOff(evt) {
     }
 }
 private thermostats1Off(evt) {
+    if (logs) log.info "thermostats two handler method activated (fan off)"
     cTstat1Off.each {deviceD ->
         def currentMode = deviceD.currentValue("thermostatMode")
         def currentTMP = deviceD.currentValue("temperature")
@@ -1372,20 +1551,23 @@ private thermostats1Off(evt) {
                                      }
         if (cTstat1ModeOff == "auto" || cTstat1ModeOff == "on") {
             cTstat1Off.auto()
-            cTstat1Off.setCoolingSetpoint(coolLvl1)
-            cTstat1Off.setHeatingSetpoint(heatLvl1)
+            cTstat1Off.setCoolingSetpoint(coolLvl)
+            cTstat1Off.setHeatingSetpoint(heatLvl)
         }
-        if (cTstat1ModeOff == "auto" || cTstat1ModeOff == "on") {
-            cTstat1Off.auto()
-            cTstat1Off.setCoolingSetpoint(coolLvl1)
-            cTstat1Off.setHeatingSetpoint(heatLvl1)
+        if (cTstatMode1Off == "cool") {
+            cTstat1Off.cool()
+            cTstat1Off.setCoolingSetpoint(coolLvl)
         }
-        if (cTstat1ModeOff == "incr") {
-            def cNewSetpoint = tempChange1
-            cNewSetpoint = tempChange1 + currentTMP
+        if (cTstatMode1Off == "heat") {
+            cTstat1Off.heat()
+            cTstat1Off.setHeatingSetpoint(heatLvl)
+        }
+        if (cTstat1Mode1Off == "incr") {
+            def cNewSetpoint = tempChange
+            cNewSetpoint = tempChange + currentTMP
             cNewSetpoint = cNewSetpoint < 60 ? 60 : cNewSetpoint > 85 ? 85 : cNewSetpoint
-            def hNewSetpoint = tempChange1
-            hNewSetpoint = tempChange1 + currentTMP
+            def hNewSetpoint = tempChange
+            hNewSetpoint = tempChange + currentTMP
             hNewSetpoint = hNewSetpoint < 60 ? 60 : hNewSetpoint > 85 ? 85 : hNewSetpoint
             if (currentMode == "auto" || currentMode == "on") {
                 deviceD.setCoolingSetpoint(cNewSetpoint)
@@ -1398,12 +1580,12 @@ private thermostats1Off(evt) {
                 deviceD.setHeatingSetpoint(hNewSetPoint)
             }
         }
-        if (cTsta1tModeOff == "decr") {
-            def cNewSetpoint = tempChange1
-            cNewSetpoint = currentTMP - tempChange1
+        if (cTstat1ModeOff == "decr") {
+            def cNewSetpoint = tempChange
+            cNewSetpoint = currentTMP - tempChange
             cNewSetpoint = cNewSetpoint < 60 ? 60 : cNewSetpoint > 85 ? 85 : cNewSetpoint
-            def hNewSetpoint = tempChange1
-            hNewSetpoint = currentTMP - tempChange1
+            def hNewSetpoint = tempChange
+            hNewSetpoint = currentTMP - tempChange
             hNewSetpoint = hNewSetpoint < 60 ? 60 : hNewSetpoint > 85 ? 85 : hNewSetpoint
             if (currentMode == "auto" || currentMode == "on") {
                 deviceD.setCoolingSetpoint(cNewSetpoint)
@@ -1496,13 +1678,13 @@ private timeIntervalLabel() {
 SPEECH AND TEXT ACTION
 ******************************************************************************************************/
 def ttsActions(msg) {
-	def result
+    def result
     def tts = msg
     def message = msg
     log.info "TTS Actions Handler activated with this message: $tts"
-	if(smc) {
-    sendLocationEvent(name: "House Fan Controller", value: "${app.label}", isStateChange: true, descriptionText: "${message}")
-    log.info "House Fan Controller has sent this to SMC: --> $message"
+    if(smc) {
+        sendLocationEvent(name: "SmartMessageControl", value: "House Fan Controller Reminder", isStateChange: true, descriptionText: "${tts}")
+        log.info "House Fan Controller has sent this to SMC: --> $message"
     }
     if(recipients || sms){				
         sendtxt(tts)

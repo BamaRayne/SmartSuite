@@ -267,6 +267,13 @@ def eventsPage() {
             }
         }
         if (events.contains("Doors, Windows, & Contacts")) {
+        section ("Change Alexa Wake Word") {
+        	input "wordContact", "capability.contactSensor", title: "Change Wake Word", multiple: false, submitOnChange: true, required: false
+            input "wakeName", "text", title: "What name do you want to give?", required: false, submitOnChange: true
+            if (wordContact) {
+            	input "echoDeviceAction", "capability.speechSynthesis", multiple: true, submitOnChange: true, required: true
+                }
+            }
         section ("Doors", hideable: true) {
             input "tGarage", "capability.garageDoorControl", title: "Garage Doors", multiple: true, required: false, submitOnChange: true
             if (tGarage) {
@@ -2009,7 +2016,8 @@ def sendToSMC(evt) {
     log.debug "Sending this message to SMC: $message"
 //    	SMCZones.each {zone ->
 //        	log.trace "Found a zone: $zone"
-    		sendLocationEvent(name: "Logic Rulz", value: "${app.label}", isStateChange: true, descriptionText: "${message}")
+			sendLocationEvent(name: "SmartMessaging", value: "${app.label}", isStateChange: true, descriptionText: "${message}")
+//    		sendLocationEvent(name: "Logic Rulz", value: "${app.label}", isStateChange: true, descriptionText: "${message}")
             //sendLocationEvent(name: "Logic Rulz", value: zone, isStateChange: true, descriptionText: message)
 //    		sendLocationEvent(name: "Logic Rulz", value: speak, isStateChange: true, descriptionText: message)
             log.trace "SMC Zone event details: name = Logic Rulz, value = $evt.value, msg = $message"
