@@ -54,7 +54,7 @@ preferences {
 }
 page name: "main"
 def main() {
-    dynamicPage (name: "main", title: "", install: true, uninstall: uninstalled) {  
+    dynamicPage (name: "main", title: "", install: true, uninstall: true) {  
         section("Create and Manage Zones") {
             href "messages", title: "Configure Your Communications Zones", description: mRoomsD(), state: mRoomsS(), 
             image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Zones.png"
@@ -69,11 +69,7 @@ def main() {
         section("Settings") {
         	href "settingsPage", title: "Configure Settings", description: mSettingsD(), state: mSettingsS(),
             image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Settings.jpg"
-            }
-        section("Uninstall") {
-        	href "uninstallPage", title: "Click here to remove $app.label",
-            image: "https://raw.githubusercontent.com/BamaRayne/SmartMessageControl/master/Icons/Warn.png"
-            }
+        }
     }
 }
 
@@ -101,14 +97,6 @@ page name: "settingsPage"
      		}
         }    
 	}
-        
-page name: "uninstallPage"
-    def uninstallPage() {
-    	dynamicPage (name: "uninstallPage", title: "Clicking on the BIG RED BUTTON below will completely remove $app.label and all Routines!", install: true, uninstall: true) {
-    		section("Please ensure you are ready to take this step, there is no coming back from the brink!"){
-            }
-		}
-    }    
  
     	
 /************************************************************************************************************
